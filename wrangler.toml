@@ -1,4 +1,4 @@
-name = "simgov2569"
+name = "thaigov2569"
 compatibility_date = "2024-02-27"
 pages_build_output_dir = "dist"
 
@@ -7,5 +7,5 @@ binding = "AI"
 
 [[d1_databases]]
 binding = "DB"
-database_name = "simgov2569-db"
-database_id = "choose-id-later" # User will need to run wrangler d1 create to get this
+database_name = "thaigov2569-db"
+database_id = "YOUR_DATABASE_ID_HERE" # Run: npx wrangler d1 create thaigov2569-db
