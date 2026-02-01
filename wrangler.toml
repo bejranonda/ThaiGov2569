@@ -1,0 +1,11 @@
+name = "simgov2569"
+compatibility_date = "2024-02-27"
+pages_build_output_dir = "dist"
+
+[ai]
+binding = "AI"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "simgov2569-db"
+database_id = "choose-id-later" # User will need to run wrangler d1 create to get this
