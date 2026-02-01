@@ -5,12 +5,18 @@ import {
     AlertCircle,
     Send,
     ChevronRight,
-    RotateCcw
+    RotateCcw,
+    Search,
+    Check
 } from 'lucide-react';
 import { PARTIES, MINISTRIES, TOTAL_SEATS, MAJORITY_THRESHOLD } from './data';
+import { POLICIES } from './policies';
 
 export default function PMSimulator() {
-    const [step, setStep] = useState(1); // 1: Coalition, 2: Cabinet, 3: Chat
+    const [step, setStep] = useState(1); // 1: Coalition, 2: Policy, 3: Cabinet, 4: Chat
+    const [selectedPolicies, setSelectedPolicies] = useState(new Set());
+    const [policyCategory, setPolicyCategory] = useState('all');
+    const [policySearch, setPolicySearch] = useState('');
     const [coalition, setCoalition] = useState([]);
     const [cabinet, setCabinet] = useState({});
     const [chatLog, setChatHistory] = useState([
@@ -59,7 +65,8 @@ export default function PMSimulator() {
             const context = {
                 message: currentInput,
                 cabinet: cabinet, // { "MOF": "PTP", ... }
-                coalition: coalition
+                coalition: coalition,
+                policies: Array.from(selectedPolicies)
             };
 
             const response = await fetch('/api/chat', {
@@ -133,8 +140,8 @@ export default function PMSimulator() {
                             key={party.id}
                             onClick={() => toggleParty(party.id)}
                             className={`p-3 rounded-lg border-2 transition-all relative overflow-hidden ${coalition.includes(party.id)
-                                    ? 'border-blue-500 bg-blue-50 shadow-md'
-                                    : 'border-slate-200 hover:border-blue-300 hover:shadow'
+                                ? 'border-blue-500 bg-blue-50 shadow-md'
+                                : 'border-slate-200 hover:border-blue-300 hover:shadow'
                                 }`}
                         >
                             {coalition.includes(party.id) && (
@@ -167,19 +174,149 @@ export default function PMSimulator() {
                     disabled={totalCoalitionSeats < MAJORITY_THRESHOLD}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2"
                 >
-                    ถัดไป: แบ่งเค้กกระทรวง <ChevronRight />
+                    ถัดไป: เลือกนโยบาย <ChevronRight />
                 </button>
             </div>
         </div>
     );
 
+    const togglePolicy = (id) => {
+        const newSet = new Set(selectedPolicies);
+        if (newSet.has(id)) newSet.delete(id);
+        else newSet.add(id);
+        setSelectedPolicies(newSet);
+    };
+
+    const renderPolicySelector = () => {
+        // Filter policies: Must be from a coalition party
+        const availablePolicies = POLICIES.filter(p => coalition.includes(p.party));
+
+        const filteredPolicies = availablePolicies.filter(p => {
+            const matchesCategory = policyCategory === 'all' || p.cat === policyCategory;
+            const matchesSearch = p.title.toLowerCase().includes(policySearch.toLowerCase()) ||
+                p.desc.toLowerCase().includes(policySearch.toLowerCase());
+            return matchesCategory && matchesSearch;
+        });
+
+        const categories = [
+            { id: 'all', name: 'ทั้งหมด' },
+            { id: 'economy', name: 'เศรษฐกิจ' },
+            { id: 'social', name: 'สังคม' },
+            { id: 'education', name: 'การศึกษา' },
+            { id: 'security', name: 'ความมั่นคง' },
+            { id: 'environment', name: 'สิ่งแวดล้อม' },
+            { id: 'politics', name: 'การเมือง' },
+            { id: 'tech', name: 'เทคโนโลยี' },
+            { id: 'justice', name: 'ยุติธรรม' },
+            { id: 'health', name: 'สาธารณสุข' },
+            { id: 'interior', name: 'ปกครอง' },
+        ];
+
+        return (
+            <div className="animate-fade-in">
+                <div className="flex justify-between items-center mb-6">
+                    <button onClick={() => setStep(1)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
+                        <RotateCcw size={16} /> แก้ไขพรรคร่วม
+                    </button>
+                    <div className="text-right">
+                        <h2 className="text-xl font-bold text-slate-800">2. เลือกนโยบายหลัก</h2>
+                        <p className="text-xs text-slate-500">เลือกอย่างน้อย 3 นโยบายเพื่อขับเคลื่อนประเทศ</p>
+                    </div>
+                </div>
+
+                {/* Filters */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 space-y-4">
+                    {/* Search */}
+                    <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
+                        <input
+                            type="text"
+                            className="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            placeholder="ค้นหานโยบาย... (เช่น เงินดิจิทัล, เกณฑ์ทหาร)"
+                            value={policySearch}
+                            onChange={(e) => setPolicySearch(e.target.value)}
+                        />
+                    </div>
+                    {/* Categories */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                        {categories.map(cat => (
+                            <button
+                                key={cat.id}
+                                onClick={() => setPolicyCategory(cat.id)}
+                                className={`px-4 py-2 rounded-full text-sm font-bold whitespace-nowrap transition-colors ${policyCategory === cat.id
+                                    ? 'bg-blue-600 text-white'
+                                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                    }`}
+                            >
+                                {cat.name}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-20">
+                    {filteredPolicies.map(p => {
+                        const party = PARTIES.find(pty => pty.id === p.party);
+                        const isSelected = selectedPolicies.has(p.id);
+                        return (
+                            <div
+                                key={p.id}
+                                onClick={() => togglePolicy(p.id)}
+                                className={`cursor-pointer p-4 rounded-xl border-2 transition-all relative ${isSelected
+                                    ? 'border-blue-500 bg-blue-50 shadow-md'
+                                    : 'border-slate-200 bg-white hover:border-blue-300 hover:shadow-sm'
+                                    }`}
+                            >
+                                <div className="flex justify-between items-start mb-2">
+                                    <span className={`text-[10px] px-2 py-0.5 rounded text-white ${party.color}`}>
+                                        {party.name}
+                                    </span>
+                                    {isSelected && <Check className="text-blue-600" size={20} />}
+                                </div>
+                                <h3 className="font-bold text-slate-800 mb-1">{p.title}</h3>
+                                <p className="text-sm text-slate-600 mb-3">{p.desc}</p>
+                                <div className="text-xs text-slate-400 flex items-center gap-1">
+                                    <span className="bg-slate-100 px-1.5 py-0.5 rounded uppercase">{p.cat}</span>
+                                </div>
+                            </div>
+                        );
+                    })}
+                    {filteredPolicies.length === 0 && (
+                        <div className="col-span-full text-center py-10 text-slate-500">
+                            ไม่พบนโยบายที่ค้นหา
+                        </div>
+                    )}
+                </div>
+
+                {/* Footer Bar */}
+                <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-4 shadow-lg z-50">
+                    <div className="max-w-4xl mx-auto flex justify-between items-center">
+                        <div>
+                            <span className="text-sm text-slate-500">เลือกแล้ว</span>
+                            <div className="text-2xl font-bold text-blue-600">{selectedPolicies.size} <span className="text-base text-slate-800">นโยบาย</span></div>
+                        </div>
+                        <button
+                            onClick={() => setStep(3)}
+                            disabled={selectedPolicies.size < 3}
+                            className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2"
+                        >
+                            ถัดไป {selectedPolicies.size < 3 && '(เลือกอีก ' + (3 - selectedPolicies.size) + ')'} <ChevronRight />
+                        </button>
+                    </div>
+                </div>
+                <div className="h-20"></div> {/* Spacer for fixed footer */}
+            </div>
+        );
+    };
+
     const renderCabinetMaker = () => (
         <div className="animate-fade-in">
             <div className="flex justify-between items-center mb-6">
-                <button onClick={() => setStep(1)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
-                    <RotateCcw size={16} /> แก้ไขพรรคร่วม
+                <button onClick={() => setStep(2)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
+                    <RotateCcw size={16} /> ย้อนกลับไปเลือกนโยบาย
                 </button>
-                <h2 className="text-xl font-bold text-slate-800">2. จัดสรรโควตารัฐมนตรี</h2>
+                <h2 className="text-xl font-bold text-slate-800">3. จัดสรรโควตารัฐมนตรี</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -215,7 +352,7 @@ export default function PMSimulator() {
 
             <div className="flex justify-end">
                 <button
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(4)}
                     disabled={Object.keys(cabinet).length < MINISTRIES.length}
                     className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2"
                 >
@@ -228,7 +365,7 @@ export default function PMSimulator() {
     const renderGovChat = () => (
         <div className="animate-fade-in h-[600px] flex flex-col">
             <div className="flex justify-between items-center mb-4">
-                <button onClick={() => setStep(2)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
+                <button onClick={() => setStep(3)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
                     <RotateCcw size={16} /> ปรับ ครม.
                 </button>
                 <div className="flex items-center gap-2">
@@ -242,8 +379,8 @@ export default function PMSimulator() {
                 {chatLog.map((msg, idx) => (
                     <div key={idx} className={`mb-4 flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[80%] rounded-2xl p-4 shadow-sm ${msg.sender === 'user'
-                                ? 'bg-blue-600 text-white rounded-br-none'
-                                : 'bg-white text-slate-700 rounded-bl-none border border-slate-200'
+                            ? 'bg-blue-600 text-white rounded-br-none'
+                            : 'bg-white text-slate-700 rounded-bl-none border border-slate-200'
                             }`}>
                             {msg.sender !== 'user' && (
                                 <div className="text-xs font-bold mb-1 flex items-center gap-2">
@@ -311,8 +448,9 @@ export default function PMSimulator() {
 
                 {/* Content */}
                 {step === 1 && renderCoalitionBuilder()}
-                {step === 2 && renderCabinetMaker()}
-                {step === 3 && renderGovChat()}
+                {step === 2 && renderPolicySelector()}
+                {step === 3 && renderCabinetMaker()}
+                {step === 4 && renderGovChat()}
 
             </div>
         </div>

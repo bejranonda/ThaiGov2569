@@ -32,7 +32,7 @@ const MINISTRIES_MAP = {
 
 export async function onRequestPost({ request, env }) {
     try {
-        const { message, cabinet, coalition } = await request.json();
+        const { message, cabinet, coalition, policies } = await request.json();
 
         // 1. Context Analysis (Which Ministry should answer?)
         // This logic mimics the frontend logic but executed here or by LLM.
@@ -71,7 +71,10 @@ export async function onRequestPost({ request, env }) {
     ${partyId === 'BJT' ? 'เน้นเรื่องทำกิน ปลดล็อคกฎระเบียบ พูดแล้วทำ' : ''}
     ${partyId === 'UTN' ? 'เน้นความสงบ ทำมาหากิน ปกป้องสถาบันหลัก' : ''}
     
-    หน้าที่ของคุณ: ตอบคำถามประชาชนเรื่อง "${message}" ตามแนวนโยบายของพรรคคุณ
+    นโยบายหลักที่รัฐบาลชุดนี้ยึดถือ (อ้างอิง):
+    ${policies ? policies.map(p => `- ${p.title}: ${p.desc}`).join('\n    ') : '- ไม่มีข้อมูลนโยบายพิเศษ'}
+    
+    หน้าที่ของคุณ: ตอบคำถามประชาชนเรื่อง "${message}" ตามแนวนโยบายของพรรคคุณ และเชื่อมโยงกับนโยบายหลักของรัฐบาลข้างต้นหากเกี่ยวข้อง
     ตอบสั้นๆ กระชับ ไม่เกิน 2 ประโยค ให้ดูเป็นการตอบในสภาหรือแถลงข่าว
     `;
 

@@ -1,6 +1,6 @@
 export async function onRequestPost({ request, env }) {
     try {
-        const { coalition, cabinet } = await request.json();
+        const { coalition, cabinet, policies } = await request.json();
 
         if (!env.DB) {
             return new Response(JSON.stringify({ error: "Database binding 'DB' not found" }), { status: 500 });
@@ -8,9 +8,9 @@ export async function onRequestPost({ request, env }) {
 
         // Save result to D1
         const result = await env.DB.prepare(
-            "INSERT INTO simulation_results (coalition, cabinet) VALUES (?, ?)"
+            "INSERT INTO simulation_results (coalition, cabinet, selected_policies) VALUES (?, ?, ?)"
         )
-            .bind(JSON.stringify(coalition), JSON.stringify(cabinet))
+            .bind(JSON.stringify(coalition), JSON.stringify(cabinet), JSON.stringify(policies))
             .run();
 
         return new Response(JSON.stringify({ success: true, result }), {
