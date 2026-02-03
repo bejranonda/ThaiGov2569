@@ -83,11 +83,24 @@ export default function PMSimulator() {
 
             const data = await response.json();
 
-            setChatHistory(prev => [...prev, {
-                sender: data.responder,
-                text: data.text,
-                partyColor: data.partyColor
-            }]);
+            // Handle new format (responses array) or old format (single response)
+            if (data.responses && Array.isArray(data.responses)) {
+                // New format: PM + Opposition
+                data.responses.forEach(resp => {
+                    setChatHistory(prev => [...prev, {
+                        sender: resp.sender,
+                        text: resp.text,
+                        partyColor: resp.partyColor
+                    }]);
+                });
+            } else {
+                // Old format (backwards compatibility)
+                setChatHistory(prev => [...prev, {
+                    sender: data.responder,
+                    text: data.text,
+                    partyColor: data.partyColor
+                }]);
+            }
 
         } catch (error) {
             console.error('AI Error:', error);

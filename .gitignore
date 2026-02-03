@@ -39,3 +39,7 @@ coverage/
 
 # Claude
 .claude/
+
+# Cloudflare
+.dev.vars
+.wrangler/
