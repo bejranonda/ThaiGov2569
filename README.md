@@ -12,7 +12,7 @@ Hosted on Autobahn Bot platform with Cloudflare Workers AI backend.
 |---------|-------------|
 | **Coalition Building** | Form a government from 500 MPs across 10 political parties |
 | **Policy Selection** | Select key policies that your government will prioritize (Economy, Social, Education, etc.) |
-| **Cabinet Allocation** | Assign ministries to parties based on their policies and coalition strength |
+| **Cabinet Allocation** | Assign ministries to parties with quick actions (Auto-assign, Assign all to PM party, Clear all) |
 | **AI-Powered Political Chat** | Chat with your government! PM and Opposition Leader respond using Cloudflare Workers AI (Llama 3.1-8B) with authentic Thai political personas |
 | **Data Persistence** | Simulation results saved to Cloudflare D1 Database |
 
@@ -24,6 +24,7 @@ Hosted on Autobahn Bot platform with Cloudflare Workers AI backend.
 - **Coalition Awareness**: PM knows their coalition partners and seat count in parliament
 - **Longer Responses**: AI can now respond with up to 4 sentences for more detailed answers
 - **OpenRouter Backup**: Automatic fallback to Llama 3.3-70B when Cloudflare AI limits are reached
+- **Cabinet Quick Actions**: Auto-assign, assign all to PM party, or clear all with one click
 
 ## Tech Stack
 
@@ -157,6 +158,18 @@ ThaiGov2569/
 | `npm run build` | Build for production |
 | `npm run preview` | Preview production build locally with Wrangler |
 | `npm run deploy` | Deploy to Cloudflare Pages (if needed) |
+
+## Cabinet Allocation Quick Actions
+
+The cabinet allocation step includes three quick action buttons to streamline ministry assignments:
+
+| Action | Description |
+|--------|-------------|
+| **Auto-assign** ⚡ | Distributes ministries proportionally based on coalition party seats |
+| **Assign all to PM party** 👑 | Gives all ministries to the Prime Minister's party |
+| **Clear all** 🗑️ | Removes all cabinet assignments to start fresh |
+
+This makes it easy to experiment with different cabinet configurations without manually assigning each ministry.
 
 ## AI Chat System
 
