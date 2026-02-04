@@ -7,7 +7,10 @@ import {
     ChevronRight,
     RotateCcw,
     Search,
-    Check
+    Check,
+    Zap,
+    Trash2,
+    Crown
 } from 'lucide-react';
 import { PARTIES, MINISTRIES, TOTAL_SEATS, MAJORITY_THRESHOLD } from './data';
 import { POLICIES } from './policies';
@@ -48,6 +51,70 @@ export default function PMSimulator() {
 
     const assignMinister = (ministryId, partyId) => {
         setCabinet({ ...cabinet, [ministryId]: partyId });
+    };
+
+    // Quick action functions
+    const autoAssignCabinet = () => {
+        const newCabinet = {};
+        const totalSeats = coalition.reduce((sum, pId) => {
+            const party = PARTIES.find(p => p.id === pId);
+            return sum + (party ? party.seats : 0);
+        }, 0);
+
+        // Assign ministries proportionally based on seats
+        let ministryIndex = 0;
+        coalition.forEach(partyId => {
+            const party = PARTIES.find(p => p.id === partyId);
+            if (!party) return;
+
+            // Calculate how many ministries this party should get
+            const partyRatio = party.seats / totalSeats;
+            const ministriesCount = Math.max(1, Math.round(MINISTRIES.length * partyRatio));
+
+            for (let i = 0; i < ministriesCount && ministryIndex < MINISTRIES.length; i++) {
+                newCabinet[MINISTRIES[ministryIndex].id] = partyId;
+                ministryIndex++;
+            }
+        });
+
+        // Fill remaining ministries with largest party
+        if (ministryIndex < MINISTRIES.length) {
+            const largestPartyId = coalition.sort((a, b) => {
+                const pA = PARTIES.find(p => p.id === a).seats;
+                const pB = PARTIES.find(p => p.id === b).seats;
+                return pB - pA;
+            })[0];
+
+            while (ministryIndex < MINISTRIES.length) {
+                newCabinet[MINISTRIES[ministryIndex].id] = largestPartyId;
+                ministryIndex++;
+            }
+        }
+
+        // Keep existing PM assignment
+        if (cabinet['PM']) {
+            newCabinet['PM'] = cabinet['PM'];
+        }
+
+        setCabinet(newCabinet);
+    };
+
+    const clearAllAssignments = () => {
+        setCabinet({});
+    };
+
+    const assignAllToPmParty = () => {
+        const pmPartyId = cabinet['PM'] || coalition.sort((a, b) => {
+            const pA = PARTIES.find(p => p.id === a).seats;
+            const pB = PARTIES.find(p => p.id === b).seats;
+            return pB - pA;
+        })[0];
+
+        const newCabinet = { 'PM': pmPartyId };
+        MINISTRIES.forEach(min => {
+            newCabinet[min.id] = pmPartyId;
+        });
+        setCabinet(newCabinet);
     };
 
     // --- AI Chat Logic ---
@@ -330,6 +397,37 @@ export default function PMSimulator() {
                     <RotateCcw size={16} /> ย้อนกลับไปเลือกนโยบาย
                 </button>
                 <h2 className="text-xl font-bold text-slate-800">3. จัดสรรโควตารัฐมนตรี</h2>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+                <div className="text-sm font-bold text-slate-600 mb-3 flex items-center gap-2">
+                    <Zap size={16} />
+                    ตั้งค่าอัตโนมาติ
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    <button
+                        onClick={autoAssignCabinet}
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg text-sm font-bold transition shadow-sm"
+                    >
+                        <Zap size={16} /> Auto-assign
+                    </button>
+                    <button
+                        onClick={assignAllToPmParty}
+                        className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold transition shadow-sm"
+                    >
+                        <Crown size={16} /> พรรคนายกฯ ทุกกระทรวง
+                    </button>
+                    <button
+                        onClick={clearAllAssignments}
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-bold transition"
+                    >
+                        <Trash2 size={16} /> ล้างทั้งหมด
+                    </button>
+                </div>
+                <p className="text-xs text-slate-500 mt-2">
+                    Auto-assign: แบ่งกระทรวงตามสัดส่วนที่นั่ง | พรรคนายกฯ: ให้พรรคนายกฯ ทุกกระทรวง
+                </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
