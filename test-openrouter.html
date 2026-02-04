@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenRouter AI Test - ThaiGov2569</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-2xl font-bold mb-4">OpenRouter AI Test (Llama 3.3-70B)</h1>
+        <p class="text-gray-600 mb-4">Testing backup AI model with Thai language support</p>
+
+        <div class="bg-white rounded-lg shadow p-6 mb-4">
+            <label class="block text-sm font-medium mb-2">Test Question (Thai):</label>
+            <input type="text" id="message" value="รัฐบาลจะแก้ปัญหาเศรษฐกิจอย่างไร"
+                   class="w-full border rounded-lg px-4 py-2 mb-4">
+            <button onclick="testOpenRouter()"
+                    class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                Test OpenRouter AI
+            </button>
+        </div>
+
+        <div id="result" class="bg-white rounded-lg shadow p-6 hidden">
+            <h2 class="text-lg font-semibold mb-4">Response:</h2>
+            <div id="response-content"></div>
+        </div>
+    </div>
+
+    <script>
+        // Sample test data
+        const testData = {
+            message: "",
+            cabinet: { "PM": "PTP" }, // Pheu Thai as PM
+            coalition: ["PTP", "PP", "BJT"], // Coalition parties
+            policies: ["เศรษฐกิจปากท้อง", "สิทธิมนุษยชน"]
+        };
+
+        async function testOpenRouter() {
+            const message = document.getElementById('message').value;
+            testData.message = message;
+
+            const resultDiv = document.getElementById('result');
+            const contentDiv = document.getElementById('response-content');
+            const button = document.querySelector('button');
+
+            resultDiv.classList.remove('hidden');
+            contentDiv.innerHTML = '<p class="text-blue-600">Testing OpenRouter...</p>';
+            button.disabled = true;
+            button.classList.add('opacity-50');
+
+            try {
+                const start = Date.now();
+                const response = await fetch('/api/chat-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(testData)
+                });
+
+                const data = await response.json();
+                const duration = Date.now() - start;
+
+                if (data.error) {
+                    contentDiv.innerHTML = `
+                        <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded">
+                            <p class="font-semibold">Error:</p>
+                            <p>${data.error}</p>
+                            ${data.hint ? `<p class="mt-2 text-sm">${data.hint}</p>` : ''}
+                        </div>
+                    `;
+                } else {
+                    contentDiv.innerHTML = `
+                        <div class="mb-4 text-sm text-gray-600">
+                            <p><strong>Provider:</strong> ${data.aiProvider}</p>
+                            <p><strong>Response Time:</strong> ${duration}ms</p>
+                        </div>
+                        ${data.responses.map(r => `
+                            <div class="mb-4 p-4 rounded-lg" style="background-color: ${r.partyColor}20; border-left: 4px solid ${r.partyColor}">
+                                <p class="font-semibold text-sm text-gray-600">${r.sender}</p>
+                                <p class="text-sm text-gray-500 mb-2">🤖 ${r.aiSource}</p>
+                                <p class="text-gray-800">${r.text}</p>
+                            </div>
+                        `).join('')}
+                    `;
+                }
+            } catch (error) {
+                contentDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 text-red-700 p-4 rounded">
+                        <p class="font-semibold">Request Failed:</p>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                button.disabled = false;
+                button.classList.remove('opacity-50');
+            }
+        }
+    </script>
+</body>
+</html>
