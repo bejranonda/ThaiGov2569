@@ -2,7 +2,7 @@
 
 A React-based simulation game where you play as the Prime Minister of Thailand. Build coalition governments, manage cabinet ministries, and experience the challenges of Thai politics in the year 2569 (2026).
 
-**Live Demo:** https://thaigov2569.pages.dev
+**Live Demo:** https://simgov2569.autobahn.bot
 
 ## Features
 
