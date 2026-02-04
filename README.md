@@ -4,6 +4,8 @@ A React-based simulation game where you play as the Prime Minister of Thailand. 
 
 **Live Demo:** https://simgov2569.autobahn.bot
 
+Hosted on Autobahn Bot platform with Cloudflare Workers AI backend.
+
 ## Features
 
 | Feature | Description |
@@ -26,6 +28,7 @@ A React-based simulation game where you play as the Prime Minister of Thailand. 
 ## Tech Stack
 
 - **Frontend:** React 18 + Vite + Tailwind CSS
+- **Hosting:** Autobahn Bot
 - **Backend:** Cloudflare Pages Functions
 - **AI:** Cloudflare Workers AI (Llama 3.1-8B) + OpenRouter backup (Llama 3.3-70B)
 - **Database:** Cloudflare D1
@@ -116,13 +119,13 @@ npx wrangler d1 execute thaigov2569-db --local --file=schema.sql
 npx wrangler d1 execute thaigov2569-db --remote --file=schema.sql
 ```
 
-### 5. Deploy to Cloudflare Pages
+### 5. Build for Production
 
 ```bash
-npm run deploy
+npm run build
 ```
 
-This builds the Vite project and deploys it to Cloudflare Pages using Wrangler.
+The app is currently hosted on Autobahn Bot platform. The frontend uses Cloudflare Pages Functions for the AI chat backend.
 
 ## Project Structure
 
@@ -153,7 +156,7 @@ ThaiGov2569/
 | `npm run dev` | Start Vite dev server (http://localhost:5173) |
 | `npm run build` | Build for production |
 | `npm run preview` | Preview production build locally with Wrangler |
-| `npm run deploy` | Deploy to Cloudflare Pages |
+| `npm run deploy` | Deploy to Cloudflare Pages (if needed) |
 
 ## AI Chat System
 
@@ -207,7 +210,8 @@ This project is open source and available under the MIT License.
 
 - Built with [React](https://react.dev/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Powered by [Cloudflare Pages](https://pages.cloudflare.com/)
+- Hosted on [Autobahn Bot](https://autobahn.bot)
+- Backend by [Cloudflare Pages Functions](https://pages.cloudflare.com/)
 - AI by [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai)
 - Backup AI by [OpenRouter](https://openrouter.ai/)
 - Primary Model: Meta Llama 3.1 8B Instruct
