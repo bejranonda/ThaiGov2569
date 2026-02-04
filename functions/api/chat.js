@@ -12,6 +12,73 @@ const PARTIES = [
     { id: 'OKM', name: 'โอกาสใหม่', seats: 3, color: 'bg-emerald-500' }
 ];
 
+// Call Cloudflare Workers AI
+async function callCloudflareAI(env, systemPrompt, userMessage) {
+    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+        ]
+    });
+    return response.response;
+}
+
+// Call OpenRouter API (backup)
+async function callOpenRouterAPI(env, systemPrompt, userMessage) {
+    const apiKey = env.OPENROUTER_API_KEY;
+    if (!apiKey) {
+        throw new Error('OpenRouter API key not configured');
+    }
+
+    const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://thaigov2569.pages.dev',
+            'X-Title': 'ThaiGov2569'
+        },
+        body: JSON.stringify({
+            model: 'meta-llama/llama-3.3-70b-instruct:free',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userMessage }
+            ],
+            max_tokens: 500
+        })
+    });
+
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`OpenRouter API error: ${response.status} ${error}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0]?.message?.content || 'No response generated';
+}
+
+// Get AI response with fallback
+async function getAIResponse(env, systemPrompt, userMessage, sourceLabel) {
+    // Try Cloudflare Workers AI first
+    try {
+        if (env.AI) {
+            const response = await callCloudflareAI(env, systemPrompt, userMessage);
+            return { text: response, source: 'Cloudflare Workers AI (Llama 3.1-8B)' };
+        }
+    } catch (err) {
+        console.log(`Cloudflare AI failed for ${sourceLabel}:`, err.message);
+    }
+
+    // Fallback to OpenRouter
+    try {
+        const response = await callOpenRouterAPI(env, systemPrompt, userMessage);
+        return { text: response, source: 'OpenRouter (Llama 3.3-70B)' };
+    } catch (err) {
+        console.log(`OpenRouter failed for ${sourceLabel}:`, err.message);
+        throw err;
+    }
+}
+
 export async function onRequestPost({ request, env }) {
     try {
         const { message, cabinet, coalition, policies } = await request.json();
@@ -88,46 +155,35 @@ ${mainOpposition.id === 'UTN' ? 'ลงท้ายว่า "เพื่อค
 ${mainOpposition.id === 'DEM' ? 'ลงท้ายว่า "เพื่อความถูกต้องของระบบ"' : ''}
 `;
 
-        let pmResponseText = '';
-        let oppResponseText = '';
+        // 7. Make AI calls with fallback
+        const [pmResult, oppResult] = await Promise.allSettled([
+            getAIResponse(env, pmPrompt, message, 'PM'),
+            getAIResponse(env, oppPrompt, message, 'Opposition')
+        ]);
 
-        // 7. Make AI calls
-        if (env.AI) {
-            // PM response
-            const pmAiResponse = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-                messages: [
-                    { role: 'system', content: pmPrompt },
-                    { role: 'user', content: message }
-                ]
-            });
-            pmResponseText = pmAiResponse.response;
+        const pmResponse = pmResult.status === 'fulfilled' ? pmResult.value : {
+            text: `(ขออภัย ไม่สามารถเชื่อมต่อ AI ได้ในขณะนี้)`,
+            source: 'Error'
+        };
+        const oppResponse = oppResult.status === 'fulfilled' ? oppResult.value : {
+            text: `(ขออภัย ไม่สามารถเชื่อมต่อ AI ได้ในขณะนี้)`,
+            source: 'Error'
+        };
 
-            // Opposition response
-            const oppAiResponse = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-                messages: [
-                    { role: 'system', content: oppPrompt },
-                    { role: 'user', content: message }
-                ]
-            });
-            oppResponseText = oppAiResponse.response;
-        } else {
-            // Mock responses
-            pmResponseText = `(Mock) นโยบายของรัฐบาลคือการดูแลประชาชนอย่างเต็มที่ครับ (${pmParty.name})`;
-            oppResponseText = `(Mock) ฝ่ายค้านมีความกังวลเกี่ยวกับประสิทธิภาพนโยบายครับ (${mainOpposition.name})`;
-        }
-
-        // 8. Return both responses
+        // 8. Return both responses with AI source info
         return new Response(JSON.stringify({
             responses: [
                 {
                     sender: `นายกรัฐมนตรี (${pmParty.name})`,
-                    text: pmResponseText,
-                    partyColor: pmParty.color
+                    text: pmResponse.text,
+                    partyColor: pmParty.color,
+                    aiSource: pmResponse.source
                 },
                 {
                     sender: `ฝ่ายค้าน (${mainOpposition.name})`,
-                    text: oppResponseText,
-                    partyColor: mainOpposition.color
+                    text: oppResponse.text,
+                    partyColor: mainOpposition.color,
+                    aiSource: oppResponse.source
                 }
             ]
         }), {

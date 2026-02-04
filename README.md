@@ -2,7 +2,7 @@
 
 A React-based simulation game where you play as the Prime Minister of Thailand. Build coalition governments, manage cabinet ministries, and experience the challenges of Thai politics in the year 2569 (2026).
 
-**Live Demo:** https://github.com/bejranonda/ThaiGov2569
+**Live Demo:** https://thaigov2569.pages.dev
 
 ## Features
 
@@ -21,12 +21,13 @@ A React-based simulation game where you play as the Prime Minister of Thailand. 
 - **Party-Specific Personas**: Each party has unique personality traits, policy positions, and signature closing phrases
 - **Coalition Awareness**: PM knows their coalition partners and seat count in parliament
 - **Longer Responses**: AI can now respond with up to 4 sentences for more detailed answers
+- **OpenRouter Backup**: Automatic fallback to Llama 3.3-70B when Cloudflare AI limits are reached
 
 ## Tech Stack
 
 - **Frontend:** React 18 + Vite + Tailwind CSS
 - **Backend:** Cloudflare Pages Functions
-- **AI:** Cloudflare Workers AI (Llama 3.1-8B Instruct)
+- **AI:** Cloudflare Workers AI (Llama 3.1-8B) + OpenRouter backup (Llama 3.3-70B)
 - **Database:** Cloudflare D1
 - **Icons:** Lucide React
 
@@ -95,7 +96,17 @@ database_name = "thaigov2569-db"
 database_id = "YOUR_DATABASE_ID_HERE"
 ```
 
-### 3. Initialize Database Schema
+### 3. Set OpenRouter API Key (Optional Backup)
+
+Get your free API key from [OpenRouter](https://openrouter.ai/keys) and set it as a secret:
+
+```bash
+echo "your-api-key-here" | npx wrangler pages secret put OPENROUTER_API_KEY --project-name=thaigov2569
+```
+
+The app will use Cloudflare Workers AI by default and automatically fall back to OpenRouter when limits are reached.
+
+### 4. Initialize Database Schema
 
 ```bash
 # Local development
@@ -105,7 +116,7 @@ npx wrangler d1 execute thaigov2569-db --local --file=schema.sql
 npx wrangler d1 execute thaigov2569-db --remote --file=schema.sql
 ```
 
-### 4. Deploy to Cloudflare Pages
+### 5. Deploy to Cloudflare Pages
 
 ```bash
 npm run deploy
@@ -146,13 +157,20 @@ ThaiGov2569/
 
 ## AI Chat System
 
-The chat system uses Cloudflare Workers AI with the Llama 3.1-8B Instruct model:
+The chat system uses Cloudflare Workers AI with automatic fallback to OpenRouter:
+
+### AI Models
+| Priority | Model | Parameters | Thai Support |
+|----------|-------|------------|--------------|
+| **Primary** | Cloudflare Llama 3.1-8B | 8B | ✅ |
+| **Backup** | OpenRouter Llama 3.3-70B | 70B | ✅ Explicit |
 
 ### Features
-- **Free Tier**: 10,000 Neurons/day (~300 chat turns)
+- **Free Tier**: Cloudflare (10,000 Neurons/day) + OpenRouter (free tier)
+- **Automatic Fallback**: Switches to OpenRouter when Cloudflare limits are reached
 - **Dual Responses**: PM answers first, then Opposition Leader adds their perspective
 - **Context Aware**: Knows coalition partners, seat counts, and government policies
-- **Party Personalas**: Each party has unique speaking style and signature phrases
+- **Party Personas**: Each party has unique speaking style and signature phrases
 
 ### Party Personas
 
@@ -191,4 +209,6 @@ This project is open source and available under the MIT License.
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
 - Powered by [Cloudflare Pages](https://pages.cloudflare.com/)
 - AI by [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai)
-- Model: Meta Llama 3.1 8B Instruct
+- Backup AI by [OpenRouter](https://openrouter.ai/)
+- Primary Model: Meta Llama 3.1 8B Instruct
+- Backup Model: Meta Llama 3.3 70B Instruct
