@@ -63,7 +63,7 @@ The game progressively introduces complexity through its 5-step flow:
 1. **Coalition Building** -- Binary choice (include/exclude parties), simple arithmetic (reach 250 seats), parties sorted by seats descending
 2. **Policy Selection** -- Step-through 6 categories, randomized order, no party names shown, select as many policies as desired
 3. **Cabinet Allocation** -- Map parties to 14 ministries, introducing institutional structure and expertise matching
-4. **Government Chat** -- 1 question limit, streaming text responses, action buttons (reshuffle or confirm)
+4. **Government Chat** -- 1 question limit, 12 suggested questions across key issues, streaming text responses, action buttons (reshuffle or confirm)
 5. **Results & Scoring** -- Quantified feedback across 4 renamed dimensions, dynamic commentary, screenshot sharing
 
 Each step builds on the previous one, gradually increasing engagement depth while providing clear feedback loops.
@@ -268,7 +268,7 @@ All data is used for educational and simulation purposes only, as stated in the 
 | 0.3.0 | Feb 2025 | Policy budget, accordion, cabinet reshuffle limit, confetti, scoring system, results screen, aggregate stats |
 | 0.4.0 | Feb 2026 | Data update (11 parties, 500 seats), policy step-through, emoji confetti, chat streaming, screenshot sharing, AI prompt improvements |
 | 0.5.0 | Feb 2026 | UX cleanup (remove emojis, sequential chat, cleaner cards), 2 initial grouped policies |
-| 0.6.0 | Feb 2026 | 17 grouped policies, 14 ministries (6 new), grade computation, stats fix |
+| 0.6.0 | Feb 2026 | 17 grouped policies, 14 ministries (6 new), 12 suggested questions, grade computation, stats fix |
 
 ---
 

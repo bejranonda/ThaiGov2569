@@ -893,7 +893,7 @@ export default function PMSimulator() {
                             </button>
                         </div>
                         <div className="mt-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                            {['จะแก้ปัญหาเศรษฐกิจยังไง', 'ขอลดค่าไฟหน่อย', 'ปราบยาเสพติดยังไง', 'การศึกษาจะดีขึ้นไหม'].map(q => (
+                            {['จะแก้ปัญหาเศรษฐกิจยังไง', 'ขอลดค่าไฟหน่อย', 'ปราบยาเสพติดยังไง', 'การศึกษาจะดีขึ้นไหม', 'ค่าครองชีพแพงมาก', 'จะแก้ปัญหาน้ำท่วมยังไง', 'ทุจริตคอร์รัปชันจะหมดไปไหม', 'เมื่อไหร่จะแก้รัฐธรรมนูญ', 'จะปฏิรูปกองทัพไหม', 'PM 2.5 จะแก้ยังไง', 'หนี้ครัวเรือนสูง ช่วยได้ไหม', 'ต่างชาติจะลงทุนเพิ่มไหม'].map(q => (
                                 <button key={q} onClick={() => setInputMessage(q)}
                                     className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs rounded-full transition-colors border border-slate-200">{q}</button>
                             ))}

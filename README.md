@@ -26,7 +26,7 @@ This game is **Part 2** of the Thai Election 2569 series:
 | **Coalition Building** | Form government from 500 MPs across 11 parties, sorted by seats descending, cleaner party cards |
 | **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, 17 grouped similar policies |
 | **Cabinet Allocation** | Assign 14 ministries + PM, quick actions (Auto-assign, PM party, Clear), 2 reshuffle limit |
-| **AI-Powered Political Chat** | 1 question limit, sequential streaming (PM → Opposition), government spokesperson branding |
+| **AI-Powered Political Chat** | 1 question limit, 12 suggested questions, sequential streaming (PM → Opposition), government spokesperson branding |
 | **Emoji Confetti** | Party-specific emoji symbols (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) celebration |
 | **Results & Scoring** | 100-point score across 4 categories, dynamic commentary |
 | **Screenshot/Share** | html2canvas integration with Web Share API and download fallback |
@@ -52,6 +52,10 @@ This game is **Part 2** of the Thai Election 2569 series:
 - กระทรวงเกษตรฯ, กระทรวงยุติธรรม, กระทรวงการต่างประเทศ
 - กระทรวงทรัพยากรฯ/สิ่งแวดล้อม, กระทรวงดิจิทัลฯ, กระทรวงพาณิชย์
 - **Party Expertise Updated**: All 11 parties have relevant policy keys for new ministries
+
+### Press Room: 12 Suggested Questions
+- Expanded from 4 to 12 suggested questions covering economy, energy, environment, security, politics, education, and more
+- Horizontally scrollable quick-pick buttons for easy selection
 
 ### Stats & Scoring Fix
 - **Grade Computation**: Added A+ to F grading based on total score
