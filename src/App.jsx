@@ -51,7 +51,7 @@ export default function PMSimulator() {
     const [coalition, setCoalition] = useState([]);
     const [cabinet, setCabinet] = useState({});
     const [chatLog, setChatHistory] = useState([
-        { sender: 'system', text: 'สวัสดีครับท่านนายกฯ คณะรัฐมนตรีพร้อมทำงานแล้วครับ ท่านต้องการสั่งการเรื่องอะไรครับ?' }
+        { sender: 'system', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ท่านต้องการสั่งการเรื่องอะไรครับ?' }
     ]);
     const [inputMessage, setInputMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -253,12 +253,12 @@ export default function PMSimulator() {
 
                 {/* Tagline */}
                 <p className="text-slate-500 text-base md:text-lg font-medium mb-6 animate-slide-up stagger-3">
-                    มาจัดตั้งรัฐบาลในฝัน และพูดคุยกับนายกฯ ของคุณ
+                    มาจัดตั้งรัฐบาลในฝัน และพูดคุยกับนายกของคุณ
                 </p>
 
                 {/* Sequel Badge */}
                 <a
-                    href="https://thalay.eu/sim-thailand"
+                    href="https://thalay.eu/sim2569"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-100 text-blue-700 rounded-full text-sm font-bold mb-6 hover:bg-blue-200 transition-colors animate-slide-up stagger-3"
@@ -270,9 +270,7 @@ export default function PMSimulator() {
 
                 {/* Narrative */}
                 <p className="text-slate-400 text-sm md:text-base leading-relaxed max-w-md mx-auto mb-8 animate-slide-up stagger-4">
-                    การเลือกตั้งจบลงแล้ว ประชาชนได้ลงคะแนนเสียง<br />
-                    ถึงเวลาที่คุณจะ<strong className="text-slate-600">จัดตั้งรัฐบาล</strong> เลือกนโยบาย แต่งตั้งรัฐมนตรี<br />
-                    และ<strong className="text-slate-600">นำพาประเทศ</strong>
+                    ถึงเวลาที่คุณจะจัดตั้งรัฐบาล และนำพาประเทศไปข้างหน้า
                 </p>
 
                 {/* Game Flow Preview */}
@@ -298,7 +296,7 @@ export default function PMSimulator() {
                     <p className="text-amber-700 text-xs leading-relaxed">
                         <AlertCircle size={14} className="inline mr-1 -mt-0.5" />
                         <strong>คำเตือน:</strong>{' '}
-                        ผลลัพธ์จากการจำลองนี้อ้างอิงจากข้อมูลนโยบายจริงของพรรคการเมือง
+                        ผลลัพธ์จากการจำลองนี้อ้างอิงจากข้อมูลนโยบายของพรรคการเมือง
                         เพื่อวัตถุประสงค์ทางการศึกษาและการจำลองสถานการณ์เท่านั้น
                         ไม่ใช่การชี้นำทางการเมือง
                     </p>
@@ -313,10 +311,51 @@ export default function PMSimulator() {
                 </button>
 
                 {/* Footer */}
-                <div className="flex flex-col items-center gap-3 animate-slide-up stagger-7">
-                    <p className="text-xs text-slate-400 font-mono">Sim-Government: Thailand 2569 v0.2.0</p>
+                <div className="flex flex-col items-center gap-4 animate-slide-up stagger-7">
+                    {/* Version with GitHub link */}
                     <a
-                        href="https://thalay.eu/sim-thailand"
+                        href="https://github.com/bejranonda/ThaiGov2569"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-slate-400 hover:text-blue-500 transition-colors font-mono"
+                    >
+                        Sim-Government: Thailand 2569 v0.2.0
+                    </a>
+
+                    {/* Developer credits */}
+                    <div className="flex flex-col items-center gap-2 opacity-40 hover:opacity-100 transition-all duration-300">
+                        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Developed by</span>
+                        <a
+                            href="https://thalay.eu/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-slate-500 hover:text-blue-500 transition-colors"
+                        >
+                            thalay.eu
+                        </a>
+                        <a
+                            href="https://www.facebook.com/thalay.eu"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-slate-500 hover:text-blue-500 transition-colors flex items-center gap-1"
+                        >
+                            <ExternalLink size={12} /> Facebook
+                        </a>
+                    </div>
+
+                    {/* Policy reference */}
+                    <a
+                        href="https://thalay.eu/policy2569"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-slate-400 hover:text-blue-500 transition-colors"
+                    >
+                        อ้างอิงข้อมูลนโยบายล่าสุด: 19 มกราคม 2569
+                    </a>
+
+                    {/* Sim-Thailand link */}
+                    <a
+                        href="https://thalay.eu/sim2569"
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-slate-400 hover:text-blue-500 transition-colors flex items-center gap-1"
@@ -604,7 +643,7 @@ export default function PMSimulator() {
                         onClick={assignAllToPmParty}
                         className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold transition shadow-sm"
                     >
-                        <Crown size={16} /> พรรคนายกฯ ทุกกระทรวง
+                        <Crown size={16} /> พรรคนายกทุกกระทรวง
                     </button>
                     <button
                         onClick={clearAllAssignments}
@@ -614,7 +653,7 @@ export default function PMSimulator() {
                     </button>
                 </div>
                 <p className="text-xs text-slate-500 mt-2">
-                    Auto-assign: แบ่งกระทรวงตามสัดส่วนที่นั่ง | พรรคนายกฯ: ให้พรรคนายกฯ ทุกกระทรวง
+                    Auto-assign: แบ่งกระทรวงตามสัดส่วนที่นั่ง | พรรคนายก: ให้พรรคนายกทุกกระทรวง
                 </p>
             </div>
 
@@ -752,7 +791,7 @@ export default function PMSimulator() {
                     {/* Header */}
                     <header className="mb-2 text-center">
                         <h1 className="text-2xl font-extrabold text-slate-900 mb-1">Sim-Government: Thailand 2569</h1>
-                        <p className="text-sm text-slate-400 mb-4">มาจัดตั้งรัฐบาลในฝัน และพูดคุยกับนายกฯ ของคุณ</p>
+                        <p className="text-sm text-slate-400 mb-4">มาจัดตั้งรัฐบาลในฝัน และพูดคุยกับนายกของคุณ</p>
                     </header>
 
                     {/* Step Indicator */}

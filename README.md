@@ -12,7 +12,7 @@ This game is **Part 2** of the Thai Election 2569 series:
 
 | Game | Phase | Description |
 |------|-------|-------------|
-| [**Sim-Thailand 2569**](https://thalay.eu/sim-thailand) | Before Election | Choose policies across 6 urgent issues and discover which of 18 parties matches your values |
+| [**Sim-Thailand 2569**](https://thalay.eu/sim2569) | Before Election | Choose policies across 6 urgent issues and discover which of 18 parties matches your values |
 | **Sim-Government 2569** (this project) | After Election | Form a coalition government, select policies, appoint ministers, and govern the country |
 
 **Narrative connection:** Sim-Thailand helps voters explore party policies before casting their vote. Once the election is over, Sim-Government picks up the story -- now it's time to form a government and put those policies into action.
@@ -257,4 +257,4 @@ This project is open source and available under the MIT License.
 - Backup AI by [OpenRouter](https://openrouter.ai/)
 - Primary Model: Meta Llama 3.1 8B Instruct
 - Backup Model: Meta Llama 3.3 70B Instruct
-- Predecessor: [Sim-Thailand 2569](https://thalay.eu/sim-thailand) by [thalay.eu](https://thalay.eu/)
+- Predecessor: [Sim-Thailand 2569](https://thalay.eu/sim2569) by [thalay.eu](https://thalay.eu/)
