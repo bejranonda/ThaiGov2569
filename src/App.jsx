@@ -27,6 +27,9 @@ import {
 import { PARTIES, MINISTRIES, TOTAL_SEATS, MAJORITY_THRESHOLD } from './data';
 import { POLICIES } from './policies';
 
+// IDs of original policies that are now grouped (v0.5.0)
+const GROUPED_POLICY_IDS = [106, 408, 213, 306, 704];
+
 // Party-colored selection styles
 const PARTY_STYLES = {
     PTP: { border: 'border-red-500', bg: 'bg-red-50', text: 'text-red-600', glow: 'card-glow-red', accent: 'border-l-red-500' },
@@ -82,7 +85,7 @@ export default function PMSimulator() {
     const [coalition, setCoalition] = useState([]);
     const [cabinet, setCabinet] = useState({});
     const [chatLog, setChatHistory] = useState([
-        { sender: 'system', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ประชาชนรอถามท่าน 1 คำถามครับ' }
+        { sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ประชาชนรอถามท่าน 1 คำถามครับ' }
     ]);
     const [inputMessage, setInputMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -107,7 +110,7 @@ export default function PMSimulator() {
     const shuffledPoliciesByCategory = useMemo(() => {
         const result = {};
         POLICY_CATEGORIES.forEach(cat => {
-            const policiesInCat = POLICIES.filter(p => p.cat === cat.id);
+            const policiesInCat = POLICIES.filter(p => p.cat === cat.id && !GROUPED_POLICY_IDS.includes(p.id));
             result[cat.id] = shuffleArray(policiesInCat);
         });
         return result;
@@ -405,15 +408,30 @@ export default function PMSimulator() {
             const data = await response.json();
 
             if (data.responses && Array.isArray(data.responses)) {
-                data.responses.forEach((resp, idx) => {
-                    const msgKey = `ai-${Date.now()}-${idx}`;
+                // Sequential streaming: PM first, then Opposition when PM completes
+                const pmResp = data.responses[0];
+                const oppResp = data.responses[1];
+
+                const pmKey = `pm-${Date.now()}`;
+                const oppKey = `opp-${Date.now()}`;
+
+                // Add PM message immediately
+                setChatHistory(prev => [...prev, {
+                    sender: pmResp.sender, text: pmResp.text,
+                    partyColor: pmResp.partyColor, streamKey: pmKey,
+                }]);
+
+                // Stream PM first, then Opposition when PM completes
+                streamText(pmKey, pmResp.text, 20);
+
+                // Add and stream Opposition after PM finishes
+                setTimeout(() => {
                     setChatHistory(prev => [...prev, {
-                        sender: resp.sender, text: resp.text,
-                        partyColor: resp.partyColor, streamKey: msgKey,
+                        sender: oppResp.sender, text: oppResp.text,
+                        partyColor: oppResp.partyColor, streamKey: oppKey,
                     }]);
-                    // Stream each response
-                    setTimeout(() => streamText(msgKey, resp.text, 20), idx * 800);
-                });
+                    streamText(oppKey, oppResp.text, 20);
+                }, pmResp.text.length * 20 + 500);
             } else {
                 const msgKey = `ai-${Date.now()}`;
                 setChatHistory(prev => [...prev, {
@@ -489,16 +507,8 @@ export default function PMSimulator() {
 
     // --- INTRO SCREEN ---
     const renderIntro = () => (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 animate-gradient-bg flex flex-col items-center justify-center px-4 py-10 -m-4 md:-m-8 relative overflow-hidden">
-            {/* Floating emojis */}
-            <span className="float-emoji float-emoji-1" style={{ top: '10%', left: '8%' }}>📜</span>
-            <span className="float-emoji float-emoji-2" style={{ top: '20%', right: '12%' }}>🏛️</span>
-            <span className="float-emoji float-emoji-3" style={{ top: '60%', left: '5%' }}>🗳️</span>
-            <span className="float-emoji float-emoji-4" style={{ top: '70%', right: '8%' }}>⚖️</span>
-            <span className="float-emoji float-emoji-5" style={{ top: '40%', left: '15%' }}>🇹🇭</span>
-            <span className="float-emoji float-emoji-6" style={{ top: '50%', right: '15%' }}>📊</span>
-
-            <div className="max-w-xl w-full flex flex-col items-center text-center relative z-10">
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 animate-gradient-bg flex flex-col items-center justify-center px-4 py-10 -m-4 md:-m-8">
+            <div className="max-w-xl w-full flex flex-col items-center text-center">
                 {/* Developer credit at top */}
                 <div className="flex items-center gap-3 mb-6 opacity-50 hover:opacity-100 transition-all duration-300 animate-slide-up stagger-1">
                     <a href="https://thalay.eu/" target="_blank" rel="noopener noreferrer" className="grayscale hover:grayscale-0 transition-all duration-300">
@@ -612,13 +622,10 @@ export default function PMSimulator() {
                         const ps = PARTY_STYLES[party.id] || { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-600', glow: '' };
                         return (
                             <button key={party.id} onClick={() => toggleParty(party.id)}
-                                className={`choice-card-enhanced p-3 rounded-xl border-2 relative overflow-hidden text-left ${isSelected ? `${ps.border} ${ps.bg} ${ps.glow} shadow-md animate-card-pulse` : 'border-slate-200 hover:border-slate-300 hover:shadow bg-white'}`}>
+                                className={`choice-card-enhanced p-4 rounded-xl border-2 relative overflow-hidden text-left ${isSelected ? `${ps.border} ${ps.bg} ${ps.glow} shadow-md animate-card-pulse` : 'border-slate-200 hover:border-slate-300 hover:shadow bg-white'}`}>
                                 {isSelected && <div className={`absolute top-1.5 right-1.5 ${ps.text} animate-check-pop`}><CheckCircle size={18} /></div>}
-                                <div className={`w-10 h-10 rounded-lg ${party.color} flex items-center justify-center text-white text-xs font-bold mb-2 shadow-sm`}>
-                                    {PARTY_EMOJI[party.id] || party.id}
-                                </div>
-                                <div className="font-bold text-slate-800 text-sm">{party.name}</div>
-                                <div className="text-xs text-slate-500 mb-1">{party.seats} ที่นั่ง</div>
+                                <div className="font-bold text-slate-800 text-base mb-1">{party.name}</div>
+                                <div className="text-sm text-slate-500 mb-2">{party.seats} ที่นั่ง</div>
                                 <p className="text-[10px] text-slate-400 leading-tight line-clamp-2">{party.policies?.general || ''}</p>
                             </button>
                         );
@@ -725,8 +732,7 @@ export default function PMSimulator() {
                                     <h3 className="font-bold text-slate-800">{p.title}</h3>
                                     {isSelected && <span className="animate-check-pop"><Check className="text-blue-600" size={20} /></span>}
                                 </div>
-                                <p className="text-sm text-slate-600 mb-2">{p.desc}</p>
-                                {p.ref && <div className="text-xs text-slate-400">{p.ref}</div>}
+                                <p className="text-sm text-slate-600">{p.desc}</p>
                             </div>
                         );
                     })}
@@ -965,7 +971,7 @@ export default function PMSimulator() {
 
         const resetGame = () => {
             setStep(0); setCoalition([]); setCabinet({}); setSelectedPolicies(new Set());
-            setChatHistory([{ sender: 'system', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ประชาชนรอถามท่าน 1 คำถามครับ' }]);
+            setChatHistory([{ sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ประชาชนรอถามท่าน 1 คำถามครับ' }]);
             setInputMessage(''); setReshuffleCount(0); setConfettiFired(false); setScore(null);
             setPolicyCategoryIndex(0); setHasAskedQuestion(false); setStreamingText({}); setStreamingDone({});
         };

@@ -119,4 +119,26 @@ export const POLICIES = [
     { id: 2006, party: "OTH", cat: "economy", title: "อัดฉีดงบ 5 แสนล้าน", desc: "เร่งรัดงบลงทุนค้างท่อ 5 แสนล้านบาทเข้าระบบภายในไตรมาส 2 เพื่อจ้างงานท้องถิ่น", ref: "Nation Debate", url: "#", verify: false },
     { id: 2007, party: "OTH", cat: "environment", title: "Carbon Credit Hub", desc: "ผลักดันไทยเป็นศูนย์กลางซื้อขายคาร์บอนเครดิตแห่งอาเซียน", ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: false },
     { id: 2008, party: "OTH", cat: "social", title: "เมืองอารยสถาปัตย์", desc: "ปรับปรุงเมืองให้รองรับผู้สูงอายุและคนพิการ (Universal Design)", ref: "นโยบายพรรค", url: "#", verify: false },
+
+    // --- Grouped Policies (v0.5.0) ---
+    {
+        id: 901,
+        supporters: ["PTP", "BJT", "PP"],
+        cat: "environment",
+        title: "รถไฟฟ้าและรถเมล์ไฟฟ้าทั่วประเทศ",
+        desc: "รถไฟฟ้า 20 บาทตลอดสาย, รถเมล์ไฟฟ้าทุกจังหวัด ลดค่าครองชีพคนเมืองและมลพิษ",
+        ref: "นโยบายขนส่ง",
+        url: "#",
+        verify: true
+    },
+    {
+        id: 902,
+        supporters: ["UTN", "TST"],
+        cat: "education",
+        title: "การศึกษาฟรีถึงระดับอุดมศึกษา",
+        desc: "เรียนฟรีถึง ป.เอก, จบ ป.ตรี อายุ 18, ลดภาระครอบครัวและสร้างโอกาสการศึกษา",
+        ref: "นโยบายการศึกษา",
+        url: "#",
+        verify: true
+    },
 ];

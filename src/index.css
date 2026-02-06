@@ -32,40 +32,6 @@ body {
 .stagger-6 { animation-delay: 0.8s; }
 .stagger-7 { animation-delay: 0.95s; }
 
-/* ===== FLOATING EMOJI ANIMATIONS ===== */
-
-@keyframes float-drift-1 {
-    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.15; }
-    25% { transform: translateY(-30px) rotate(10deg); opacity: 0.25; }
-    50% { transform: translateY(-15px) rotate(-5deg); opacity: 0.2; }
-    75% { transform: translateY(-40px) rotate(8deg); opacity: 0.15; }
-}
-
-@keyframes float-drift-2 {
-    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.12; }
-    33% { transform: translateY(-25px) rotate(-8deg); opacity: 0.22; }
-    66% { transform: translateY(-45px) rotate(12deg); opacity: 0.18; }
-}
-
-@keyframes float-drift-3 {
-    0%, 100% { transform: translateY(0px) rotate(5deg); opacity: 0.1; }
-    50% { transform: translateY(-35px) rotate(-10deg); opacity: 0.2; }
-}
-
-.float-emoji {
-    position: absolute;
-    pointer-events: none;
-    user-select: none;
-    font-size: 2rem;
-}
-
-.float-emoji-1 { animation: float-drift-1 8s ease-in-out infinite; }
-.float-emoji-2 { animation: float-drift-2 10s ease-in-out infinite; }
-.float-emoji-3 { animation: float-drift-3 12s ease-in-out infinite; }
-.float-emoji-4 { animation: float-drift-1 9s ease-in-out infinite 2s; }
-.float-emoji-5 { animation: float-drift-2 11s ease-in-out infinite 1s; }
-.float-emoji-6 { animation: float-drift-3 7s ease-in-out infinite 3s; }
-
 /* ===== STREAMING TEXT ===== */
 
 @keyframes blink-cursor {
