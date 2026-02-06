@@ -132,6 +132,12 @@ Making completed steps clickable enables backward navigation without breaking th
 - **Exploration**: Encourages experimentation with different combinations
 - **Reshuffle cost**: Going back to cabinet costs a reshuffle slot (when coming from chat/results)
 
+### Brand-aligned Favicon
+
+To provide a professional and cohesive experience from the browser tab to the app content:
+- **Visual Consistency**: The favicon uses the same `Landmark` icon and blue-to-indigo gradient as the Hero icon in the intro screen.
+- **Modern SVG**: Using a high-quality SVG format ensures the icon remains crisp across all resolutions and device types.
+
 ---
 
 ## Scoring System Rationale

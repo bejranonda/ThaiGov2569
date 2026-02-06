@@ -68,6 +68,7 @@ This game is **Part 2** of the Thai Election 2569 series:
 - **Grade Pop Animation**: Scale + rotate bounce on grade reveal
 - **Accordion Animation**: Smooth open/close with max-height
 - **Budget Dot Pulse**: Visual feedback when budget exhausted
+- **Brand-aligned Favicon**: Custom SVG favicon matching the app's Hero icon and color scheme
 - **Footer Logos**: thalay.eu logo image + Facebook SVG icon
 
 ## Tech Stack
@@ -178,6 +179,7 @@ The app is currently hosted on Autobahn Bot platform. The frontend uses Cloudfla
 
 ```
 SimGov2569/
+├── public/              # Static assets (favicon, etc.)
 ├── src/
 │   ├── App.jsx          # Main React application (intro, steps 1-5, all UI)
 │   ├── main.jsx         # React entry point
