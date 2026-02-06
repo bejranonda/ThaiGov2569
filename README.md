@@ -1,30 +1,47 @@
-# ThaiGov2569 - PM Simulator
+# Sim-Government: Thailand 2569 -- PM Simulator
 
-A React-based simulation game where you play as the Prime Minister of Thailand. Build coalition governments, manage cabinet ministries, and experience the challenges of Thai politics in the year 2569 (2026).
+A React-based political simulation game where you play as the Prime Minister of Thailand. Build coalition governments, select policies, manage cabinet ministries, and govern through AI-powered political discourse -- all based on real Thai political party data from the 2569 (2026) election.
 
 **Live Demo:** https://simgov2569.autobahn.bot
 
 Hosted on Autobahn Bot platform with Cloudflare Workers AI backend.
 
+## The "Thai Election 2569" Series
+
+This game is **Part 2** of the Thai Election 2569 series:
+
+| Game | Phase | Description |
+|------|-------|-------------|
+| [**Sim-Thailand 2569**](https://thalay.eu/sim-thailand) | Before Election | Choose policies across 6 urgent issues and discover which of 18 parties matches your values |
+| **Sim-Government 2569** (this project) | After Election | Form a coalition government, select policies, appoint ministers, and govern the country |
+
+**Narrative connection:** Sim-Thailand helps voters explore party policies before casting their vote. Once the election is over, Sim-Government picks up the story -- now it's time to form a government and put those policies into action.
+
 ## Features
 
 | Feature | Description |
 |---------|-------------|
-| **Coalition Building** | Form a government from 500 MPs across 10 political parties |
-| **Policy Selection** | Select key policies that your government will prioritize (Economy, Social, Education, etc.) |
-| **Cabinet Allocation** | Assign ministries to parties with quick actions (Auto-assign, Assign all to PM party, Clear all) |
-| **AI-Powered Political Chat** | Chat with your government! PM and Opposition Leader respond using Cloudflare Workers AI (Llama 3.1-8B) with authentic Thai political personas |
+| **Introduction Screen** | Animated intro page with game flow preview, sequel connection to Sim-Thailand, and educational disclaimer |
+| **Step Progress Indicator** | Visual 4-step tracker showing completion status across all game phases |
+| **Coalition Building** | Form a government from 500 MPs across 10 political parties with party-colored selection feedback |
+| **Policy Selection** | Browse 132 real policies with search, category filters with counts, and party-colored accent borders |
+| **Cabinet Allocation** | Assign 8 ministries to coalition parties with quick actions (Auto-assign, PM party, Clear all) |
+| **AI-Powered Political Chat** | Chat with your government! PM and Opposition Leader respond using Cloudflare Workers AI with authentic Thai political personas |
 | **Data Persistence** | Simulation results saved to Cloudflare D1 Database |
 
-## What's New in v0.1.0
+## What's New in v0.2.0
 
-- **Dual AI Responses**: Prime Minister and Opposition Leader both respond to your questions
-- **Enhanced AI Model**: Upgraded to `@cf/meta/llama-3.1-8b-instruct` for better Thai language understanding
-- **Party-Specific Personas**: Each party has unique personality traits, policy positions, and signature closing phrases
-- **Coalition Awareness**: PM knows their coalition partners and seat count in parliament
-- **Longer Responses**: AI can now respond with up to 4 sentences for more detailed answers
-- **OpenRouter Backup**: Automatic fallback to Llama 3.3-70B when Cloudflare AI limits are reached
-- **Cabinet Quick Actions**: Auto-assign, assign all to PM party, or clear all with one click
+- **Introduction Screen**: Full-screen animated intro with game narrative, sequel badge linking to Sim-Thailand, game flow preview, and educational disclaimer
+- **Series Connection**: Explicit link to Sim-Thailand 2569 as the predecessor game in the election series
+- **Step Progress Indicator**: 4-dot visual progress bar showing completed/active/upcoming steps
+- **Party-Colored Selections**: Coalition parties show selection feedback in their own party color (not generic blue)
+- **Enhanced Card Interactions**: Hover lift, click pulse, animated checkmarks (check-pop), and shimmer effects on selected cards
+- **Policy Category Counts**: Category filter pills now show the number of available policies per category
+- **Policy Reference Sources**: Each policy card shows its reference source (e.g., "Nation Debate", "White Paper")
+- **Cabinet Color Feedback**: Ministry icons change to the assigned party's color
+- **Chat Animations**: Messages slide in from left/right with smooth entrance animations
+- **Anuphan Thai Font**: Professional Thai font throughout the app
+- **Glassmorphism & Polish**: Frosted footer bar, gradient backgrounds, glow effects
 
 ## Tech Stack
 
@@ -34,6 +51,7 @@ Hosted on Autobahn Bot platform with Cloudflare Workers AI backend.
 - **AI:** Cloudflare Workers AI (Llama 3.1-8B) + OpenRouter backup (Llama 3.3-70B)
 - **Database:** Cloudflare D1
 - **Icons:** Lucide React
+- **Font:** Anuphan (Google Fonts)
 
 ## Quick Start
 
@@ -131,22 +149,25 @@ The app is currently hosted on Autobahn Bot platform. The frontend uses Cloudfla
 ## Project Structure
 
 ```
-ThaiGov2569/
+SimGov2569/
 ├── src/
-│   ├── App.jsx          # Main React application
+│   ├── App.jsx          # Main React application (intro, steps 1-4, all UI)
 │   ├── main.jsx         # React entry point
-│   ├── index.css        # Global styles
-│   ├── data.js          # Party and ministry data
-│   └── policies.js      # Policy definitions
+│   ├── index.css        # Global styles, animations, tooltips
+│   ├── data.js          # Party and ministry data (10 parties, 8 ministries)
+│   └── policies.js      # 132 policy definitions with references
 ├── functions/
 │   └── api/
-│       └── chat.js      # AI Chat endpoint (PM + Opposition)
+│       └── chat.js      # AI Chat endpoint (PM + Opposition dual responses)
+├── docs/
+│   └── CONCEPT.md       # Project concept and design philosophy
 ├── Campaign2569/        # Campaign-related content
+├── ThaiSim2569/         # Sim-Thailand 2569 (predecessor game)
 ├── dist/                # Build output (generated)
 ├── schema.sql           # Database schema
 ├── wrangler.toml        # Cloudflare configuration
 ├── vite.config.js       # Vite configuration
-├── tailwind.config.js   # Tailwind CSS configuration
+├── tailwind.config.js   # Tailwind CSS configuration (Anuphan font, animations)
 └── package.json         # Dependencies and scripts
 ```
 
@@ -159,17 +180,24 @@ ThaiGov2569/
 | `npm run preview` | Preview production build locally with Wrangler |
 | `npm run deploy` | Deploy to Cloudflare Pages (if needed) |
 
-## Cabinet Allocation Quick Actions
+## Game Flow
 
-The cabinet allocation step includes three quick action buttons to streamline ministry assignments:
-
-| Action | Description |
-|--------|-------------|
-| **Auto-assign** ⚡ | Distributes ministries proportionally based on coalition party seats |
-| **Assign all to PM party** 👑 | Gives all ministries to the Prime Minister's party |
-| **Clear all** 🗑️ | Removes all cabinet assignments to start fresh |
-
-This makes it easy to experiment with different cabinet configurations without manually assigning each ministry.
+```
+Intro Screen (step 0)
+  │  "เริ่มจัดตั้งรัฐบาล"
+  ▼
+Step 1: Coalition Building
+  │  Select parties to reach 250+ seats
+  ▼
+Step 2: Policy Selection
+  │  Choose 3+ policies from coalition parties
+  ▼
+Step 3: Cabinet Allocation
+  │  Assign parties to 8 ministries + PM
+  ▼
+Step 4: Government Chat
+     Chat with AI-powered PM and Opposition
+```
 
 ## AI Chat System
 
@@ -178,8 +206,8 @@ The chat system uses Cloudflare Workers AI with automatic fallback to OpenRouter
 ### AI Models
 | Priority | Model | Parameters | Thai Support |
 |----------|-------|------------|--------------|
-| **Primary** | Cloudflare Llama 3.1-8B | 8B | ✅ |
-| **Backup** | OpenRouter Llama 3.3-70B | 70B | ✅ Explicit |
+| **Primary** | Cloudflare Llama 3.1-8B | 8B | Yes |
+| **Backup** | OpenRouter Llama 3.3-70B | 70B | Yes (Explicit) |
 
 ### Features
 - **Free Tier**: Cloudflare (10,000 Neurons/day) + OpenRouter (free tier)
@@ -229,3 +257,4 @@ This project is open source and available under the MIT License.
 - Backup AI by [OpenRouter](https://openrouter.ai/)
 - Primary Model: Meta Llama 3.1 8B Instruct
 - Backup Model: Meta Llama 3.3 70B Instruct
+- Predecessor: [Sim-Thailand 2569](https://thalay.eu/sim-thailand) by [thalay.eu](https://thalay.eu/)
