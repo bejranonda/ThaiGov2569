@@ -21,55 +21,73 @@ This game is **Part 2** of the Thai Election 2569 series:
 
 | Feature | Description |
 |---------|-------------|
-| **Introduction Screen** | Animated intro with game flow preview, sequel badge, election reference links, and public stats view |
+| **Introduction Screen** | Developer credits, 6 floating emojis, poll reference links (NIDA/Dusit), public stats view |
 | **5-Step Progress Indicator** | Clickable visual tracker with backward navigation, reshuffle counter for cabinet |
-| **Coalition Building** | Form a government from 500 MPs across 10 parties with party-colored selection feedback |
-| **Policy Selection** | Budget system (max 10 policies), accordion categories, sticky header, search with counts |
+| **Coalition Building** | Form government from 500 MPs across 11 parties, sorted by seats descending |
+| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown |
 | **Cabinet Allocation** | Assign 8 ministries, quick actions (Auto-assign, PM party, Clear), 2 reshuffle limit |
-| **AI-Powered Political Chat** | Chat with your government! PM and Opposition respond using Cloudflare Workers AI |
-| **Party-Themed Confetti** | Celebration moment when entering government with PM party colors |
-| **Results & Scoring** | 100-point score across 4 categories, letter grade (A-F), government summary |
-| **Aggregate Stats** | Public leaderboards showing PM distribution, grade distribution, averages |
+| **AI-Powered Political Chat** | 1 question limit, streaming text effect, action buttons after response |
+| **Emoji Confetti** | Party-specific emoji symbols (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) celebration |
+| **Results & Scoring** | 100-point score across 4 categories, dynamic commentary |
+| **Screenshot/Share** | html2canvas integration with Web Share API and download fallback |
+| **Aggregate Stats** | Public leaderboards showing PM distribution, score averages |
 | **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
 
-## What's New in v0.3.0
+## What's New in v0.4.0
 
-**Major UX Overhaul - Complete Feature Release**
+**Data Update + UX Refinement**
 
-### Navigation & Flow
-- **Clickable Step Indicator**: Click any completed step to navigate backward, with hover ring effects
-- **Cabinet Reshuffle Limit**: Maximum 2 reshuffles with visual dot counter
-- **Election Reference Links**: Added pre/post election data source links on intro
-- **Public Stats View**: "ดูผลโหวตและการตั้งรัฐบาล" button for aggregate stats without playing
+### Data Updates (Phase 1)
+- **2026 Poll Data**: Updated party seats from NIDA/Dusit polls (Jan/Feb 2026)
+- **New Parties**: Added SET (เศรษฐกิจ, 19 seats), TST (ไทยสร้างไทย, 9 seats), SRT (เสรีรวมไทย, 5 seats), OTH (พรรคเล็กอื่นๆ, 18 seats)
+- **Removed Parties**: CTP, TKM, OKM (policies merged into OTH)
+- **Total 500 Seats**: PP 170, BJT 111, PTP 84, DEM 61, SET 19, UTN 10, TST 9, PCC 7, PPRP 6, SRT 5, OTH 18
 
-### Policy Selection Overhaul
-- **Budget System**: Max 10 policies with visual dot meter in sticky header
-- **Accordion Categories**: Collapsible category sections with "เลือกแล้ว X" badges
-- **Sticky Header**: Always-visible navigation, budget counter, and next button
-- **Budget Exhaustion**: Disabled cards + amber notice when budget depleted
-- **Search Shows Flat Results**: When searching, bypass accordion for filtered grid
+### Intro Page Enhancements (Phase 2)
+- **Developer Credits**: thalay.eu logo + Facebook icon at top of intro
+- **Floating Emojis**: 6 animated emoji symbols (📜🏛️🗳️⚖️🇹🇭📊) floating across intro screen
+- **Poll Reference Links**: Direct links to NIDA Poll (Jan 69) and Dusit Poll (Dec 68) PDFs
+- **Version Display**: v0.4.0 shown at bottom of intro page
 
-### Celebration & Scoring
-- **Party-Themed Confetti**: Fires on government entry with PM party colors (code-split, ~11KB)
-- **Results Screen (Step 5)**: Animated SVG score ring, letter grade with pop animation
-- **4-Category Scoring**: Coalition stability (25), Policy diversity (25), Cabinet expertise (25), Engagement (25)
-- **Grade Distribution**: A (90+), B (75+), C (60+), D (40+), F (<40)
-- **Government Summary**: PM, coalition parties, seat count, policies chosen
-- **Aggregate Comparison**: See how you compare with other players
+### Policy Selection Overhaul (Phase 3)
+- **Step-Through Categories**: Navigate 6 policy categories one-by-one with sticky header
+- **Category Progress Bar**: Visual dots showing progress through categories
+- **No Party Names**: Policy cards hide party affiliations to reduce bias
+- **Randomized Order**: Fisher-Yates shuffle for policy presentation order
+- **No Budget Limit**: Select as many policies as desired
+- **6 Categories**: Economy, Social, Education, Security, Environment, Politics
 
-### Backend & Data
-- **game_sessions Table**: Full session storage with all scoring fields
-- **Expanded Stats API**: POST saves complete session, GET returns aggregate stats
-- **PM Distribution Chart**: See which parties players choose as PM
-- **Grade Distribution**: Visual breakdown of player grades
+### Coalition Sorting (Phase 4)
+- **Seats Descending**: Parties automatically sorted by seats (highest first)
 
-### Polish & Animations
-- **Score Ring Animation**: Smooth stroke-dasharray transition
-- **Grade Pop Animation**: Scale + rotate bounce on grade reveal
-- **Accordion Animation**: Smooth open/close with max-height
-- **Budget Dot Pulse**: Visual feedback when budget exhausted
-- **Brand-aligned Favicon**: Custom SVG favicon matching the app's Hero icon and color scheme
-- **Footer Logos**: thalay.eu logo image + Facebook SVG icon
+### Confetti Enhancement (Phase 5)
+- **Emoji Symbols**: Party-specific emojis (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) as confetti particles
+- **shapeFromText()**: Uses canvas-confetti's shapeFromText for emoji particles
+
+### Chat Room Overhaul (Phase 6)
+- **1 Question Limit**: Users can ask only 1 question to the government
+- **Streaming Text**: AI responses stream character-by-character (20ms delay) with blinking cursor
+- **Action Buttons**: After response, show "ปรับ ครม." (reshuffle) and "ยืนยันจัดตั้งรัฐบาล" (confirm) buttons
+
+### Scoring Revamp (Phase 7)
+- **Renamed Categories**: "เสถียรภาพรัฐบาล", "นโยบายครอบคลุมทุกมิติ", "ครม. ตรงกับจุดแข็งพรรค", "ถามคำถามสำคัญ"
+- **No Letter Grades**: Removed A-F grading, kept numerical score out of 100
+- **Dynamic Commentary**: Bullet points based on score breakdown (e.g., "รัฐบาลมีฐานเสียงที่มั่นคง")
+
+### Results Page + Share (Phase 8)
+- **Screenshot/Share**: html2canvas integration for sharing results as image
+- **Web Share API**: Native share on mobile with download fallback
+- **Error Handling**: Graceful fallback for stats API failures (5s timeout)
+
+### AI Prompt Improvements (Phase 9)
+- **Updated Parties**: All 11 parties reflected in chat.js
+- **No Fixed Closing Phrases**: Removed hardcoded phrases like "ลงท้ายว่า..."
+- **Cabinet Context**: Full cabinet mapping sent to AI for contextual responses
+- **Natural Language**: Prompts guide AI to generate appropriate closings
+
+### Build Changes
+- **html2canvas**: Added for screenshot feature (201KB code-split chunk)
+- **Total Bundle**: ~210KB JS + ~38KB CSS + 201KB html2canvas (lazy) + 11KB confetti (lazy)
 
 ## Tech Stack
 
@@ -79,6 +97,7 @@ This game is **Part 2** of the Thai Election 2569 series:
 - **AI:** Cloudflare Workers AI (Llama 3.1-8B) + OpenRouter backup (Llama 3.3-70B)
 - **Database:** Cloudflare D1
 - **Effects:** canvas-confetti (code-split)
+- **Screenshot:** html2canvas (code-split)
 - **Icons:** Lucide React
 - **Font:** Anuphan (Google Fonts)
 
@@ -183,8 +202,8 @@ SimGov2569/
 ├── src/
 │   ├── App.jsx          # Main React application (intro, steps 1-5, all UI)
 │   ├── main.jsx         # React entry point
-│   ├── index.css        # Global styles, animations, tooltips
-│   ├── data.js          # Party and ministry data (10 parties, 8 ministries)
+│   ├── index.css        # Global styles, animations, tooltips, floating emojis
+│   ├── data.js          # Party and ministry data (11 parties, 8 ministries)
 │   └── policies.js      # 132 policy definitions with references
 ├── functions/
 │   └── api/
@@ -221,7 +240,7 @@ Step 1: Coalition Building
   │  Select parties to reach 250+ seats
   ▼
 Step 2: Policy Selection
-  │  Choose 3-10 policies from coalition parties (budget system, accordion)
+  │  Step through 6 categories, select policies (randomized, no party names)
   ▼
 Step 3: Cabinet Allocation
   │  Assign parties to 8 ministries + PM (2 reshuffles max)
@@ -240,12 +259,10 @@ The game evaluates your government across 4 categories (100 points total):
 
 | Category | Max Points | Formula |
 |----------|-----------|---------|
-| Coalition Stability | 25 | Margin above 250 seats (capped at 100 extra) |
-| Policy Diversity | 25 | Unique categories covered / 10 total categories |
-| Cabinet Expertise | 25 | Party has relevant policy expertise / 8 ministries |
-| Engagement | 25 | Chat messages sent (capped at 10) |
-
-**Grade Scale:** A (90+), B (75+), C (60+), D (40+), F (<40)
+| เสถียรภาพรัฐบาล (Coalition Stability) | 25 | Margin above 250 seats (capped at 100 extra) |
+| นโยบายครอบคลุมทุกมิติ (Policy Diversity) | 25 | Unique categories covered / 6 total categories |
+| ครม. ตรงกับจุดแข็งพรรค (Cabinet Expertise) | 25 | Party has relevant policy expertise / 8 ministries |
+| ถามคำถามสำคัญ (Engagement) | 25 | Binary: 25 if asked question, 0 if not |
 
 ## AI Chat System
 
@@ -266,14 +283,9 @@ The chat system uses Cloudflare Workers AI with automatic fallback to OpenRouter
 
 ### Party Personas
 
-| Party | Style | Signature Phrase |
-|-------|-------|------------------|
-| เพื่อไทย | Soft-spoken but serious | "เราจะทำให้ได้ รับรองครับ" |
-| ประชาชน | Direct, anti-monopoly | "เรื่องนี้เราไม่ประนีประนอม" |
-| ภูมิใจไทย | Action-oriented | "พูดแล้วทำครับ" |
-| รทสช. | Peace and stability | "เพื่อความสงบของชาติ" |
-| พลังประชารัฐ | Experience-focused | "เราเคยทำได้แล้ว จะทำได้อีก" |
-| ประชาธิปัตย์ | Democracy-focused | "เพื่อประชาธิปไตยที่แท้จริง" |
+Each party has unique speaking style reflected in AI responses. The system now generates natural closings instead of fixed phrases.
+
+**11 Parties:** ประชาชน (PP), ภูมิใจไทย (BJT), เพื่อไทย (PTP), ประชาธิปัตย์ (DEM), เศรษฐกิจ (SET), รวมไทยสร้างชาติ (UTN), ไทยสร้างไทย (TST), ประชาชาติ (PCC), พลังประชารัฐ (PPRP), เสรีรวมไทย (SRT), พรรคเล็กอื่นๆ (OTH)
 
 ## Database Schema
 
@@ -326,6 +338,7 @@ This project is open source and available under the MIT License.
 - AI by [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai)
 - Backup AI by [OpenRouter](https://openrouter.ai/)
 - Confetti by [canvas-confetti](https://github.com/catdad/canvas-confetti)
+- Screenshots by [html2canvas](https://html2canvas.hertzen.com/)
 - Primary Model: Meta Llama 3.1 8B Instruct
 - Backup Model: Meta Llama 3.3 70B Instruct
 - Predecessor: [Sim-Thailand 2569](https://thalay.eu/sim2569) by [thalay.eu](https://thalay.eu/)

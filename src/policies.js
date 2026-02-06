@@ -100,33 +100,23 @@ export const POLICIES = [
     { id: 1708, party: "PPRP", cat: "security", title: "รั้วชายแดนมั่นคง", desc: "สร้างรั้วและระบบเฝ้าระวังตลอดแนวชายแดน ป้องกันยาเสพติดและสิ่งผิดกฎหมาย", ref: "นโยบายความมั่นคง", url: "https://pprp.or.th", verify: true },
     { id: 1709, party: "PPRP", cat: "politics", title: "กวาดล้างทุนสีเทา", desc: "ปราบปรามมาเฟียข้ามชาติและแก๊งคอลเซ็นเตอร์อย่างเด็ดขาด", ref: "ยุทธศาสตร์พรรค", url: "https://pprp.or.th", verify: true },
 
-    // --- ไทยก้าวใหม่ (TKM) ---
-    { id: 801, party: "TKM", cat: "politics", title: "Single Command ภัยพิบัติ", desc: "นายกฯ สั่งการภัยพิบัติด้วยตัวเอง บูรณาการข้อมูลดาวเทียม THEOS-2", ref: "Nation Debate (ดร.เอ้)", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
-    { id: 802, party: "TKM", cat: "security", title: "ปราบสแกมเมอร์ใน 60 วัน", desc: "ใช้เทคโนโลยีบล็อกบัญชีม้าและเส้นทางการเงินผิดกฎหมายภายใน 2 เดือน", ref: "Nation Debate", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
-    { id: 803, party: "TKM", cat: "social", title: "ธนู 4 ดอก (แม่และเด็ก)", desc: "เงินอุดหนุนคนท้องและเด็กแรกเกิด เพื่อสร้างทรัพยากรมนุษย์ตั้งแต่เริ่ม", ref: "วิสัยทัศน์ ดร.เอ้", url: "https://thaikaomai.or.th", verify: true },
-    { id: 804, party: "TKM", cat: "economy", title: "กองทุน 20,000 บาท", desc: "ให้กู้อาชีพอิสระ/พ่อค้าแม่ค้า ดอกเบี้ยต่ำ ใช้บัตรประชาชนใบเดียว", ref: "วิสัยทัศน์ ดร.เอ้", url: "https://thaikaomai.or.th", verify: true },
-    { id: 805, party: "TKM", cat: "education", title: "ลดเวลาเรียน 3 ปี", desc: "เข้าสู่ตลาดแรงงานได้ตั้งแต่อายุ 18-19 ปี", ref: "กสศ.", url: "https://www.eef.or.th/", verify: true },
-    { id: 806, party: "TKM", cat: "education", title: "AI ในห้องเรียน", desc: "นำ AI มาช่วยครูสอนและวิเคราะห์พัฒนาการเด็กรายบุคคล", ref: "วิสัยทัศน์ ดร.เอ้", url: "https://thaikaomai.or.th", verify: true },
-    { id: 807, party: "TKM", cat: "economy", title: "สะพานเทคโนโลยี (Tech Bridge)", desc: "แพลตฟอร์มกลางช่วย SME/เกษตรกร ใช้เทคโนโลยีลดต้นทุน เพิ่มยอดขาย", ref: "วิสัยทัศน์ ดร.เอ้", url: "https://thaikaomai.or.th", verify: true },
-    { id: 808, party: "TKM", cat: "education", title: "เรียนฟรีถึง ป.เอก", desc: "รัฐสนับสนุนทุนการศึกษาเต็มรูปแบบในสาขาที่ขาดแคลน", ref: "นโยบายการศึกษา", url: "https://thaikaomai.or.th", verify: true },
+    // --- เศรษฐกิจ (SET) - NEW ---
+    { id: 1801, party: "SET", cat: "economy", title: "เศรษฐกิจฐานราก", desc: "พัฒนาเศรษฐกิจฐานรากด้วยนโยบายเชิงโครงสร้าง เพิ่มรายได้ชุมชน", ref: "นโยบายพรรค", url: "#", verify: false },
+    { id: 1802, party: "SET", cat: "economy", title: "ลดต้นทุนพลังงาน", desc: "ปรับโครงสร้างพลังงานเพื่อลดต้นทุนการผลิตและค่าครองชีพ", ref: "นโยบายพรรค", url: "#", verify: false },
+    { id: 1803, party: "SET", cat: "economy", title: "ส่งเสริมการลงทุน SME", desc: "สร้างกลไกสนับสนุน SME ด้วยสินเชื่อดอกเบี้ยต่ำและลดกฎระเบียบ", ref: "นโยบายพรรค", url: "#", verify: false },
 
-    // --- โอกาสใหม่ (OKM) ---
-    { id: 901, party: "OKM", cat: "economy", title: "อัดฉีดงบ 5 แสนล้าน", desc: "เร่งรัดงบลงทุนค้างท่อ 5 แสนล้านบาทเข้าระบบภายในไตรมาส 2 เพื่อจ้างงานท้องถิ่น", ref: "Nation Debate (จตุพร)", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
-    { id: 902, party: "OKM", cat: "security", title: "ปิดประเทศเมื่อมีโรคระบาด", desc: "กล้าตัดสินใจล็อกดาวน์ทันทีหากมีโรคอุบัติใหม่ เพื่อรักษาชีวิตประชาชน", ref: "Nation Debate", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
-    { id: 903, party: "OKM", cat: "security", title: "ไม่ร่วมกับผู้ก้าวล่วง", desc: "จุดยืนชัดเจนในการปกป้องสถาบันหลักของชาติ ไม่ร่วมรัฐบาลกับพรรคที่ก้าวล่วง", ref: "Nation Debate", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
-    { id: 904, party: "OKM", cat: "economy", title: "จ้างงานท้องถิ่น", desc: "บังคับให้โครงการรัฐต้องจ้างแรงงานและบริษัทในพื้นที่เท่านั้น", ref: "Nation Debate", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
-    { id: 905, party: "OKM", cat: "education", title: "ประชาธิปไตยในโรงเรียน", desc: "ฝึกอบรมเยาวชนให้มีส่วนร่วมทางการเมืองอย่างถูกต้อง", ref: "Policy Watch", url: "https://thaipbs.or.th/election69", verify: true },
-    { id: 906, party: "OKM", cat: "environment", title: "One Vision One Team", desc: "บูรณาการหน่วยงานสิ่งแวดล้อมเป็นหนึ่งเดียว เพื่อการจัดการที่รวดเร็ว", ref: "วิสัยทัศน์หัวหน้าพรรค", url: "https://www.facebook.com/search/top?q=พรรคโอกาสใหม่", verify: true },
-    { id: 907, party: "OKM", cat: "politics", title: "Happy Organization", desc: "ปฏิรูประบบราชการให้เป็นองค์กรแห่งความสุข ประชาชนได้รับบริการที่ดี", ref: "วิสัยทัศน์หัวหน้าพรรค", url: "https://www.facebook.com/search/top?q=พรรคโอกาสใหม่", verify: true },
-    { id: 908, party: "OKM", cat: "environment", title: "รุกขจรกรรุกป่า", desc: "เพิ่มเจ้าหน้าที่ดูแลป่าและเทคโนโลยีป้องกันไฟป่าเชิงรุก", ref: "นโยบายสิ่งแวดล้อม", url: "https://www.facebook.com/search/top?q=พรรคโอกาสใหม่", verify: true },
+    // --- เสรีรวมไทย (SRT) - NEW ---
+    { id: 1901, party: "SRT", cat: "politics", title: "ปฏิรูปกองทัพถอนรากถอนโคน", desc: "ปฏิรูปกองทัพทั้งระบบ ยกเลิกเกณฑ์ทหาร ลดงบกลาโหม", ref: "นโยบายพรรค", url: "#", verify: false },
+    { id: 1902, party: "SRT", cat: "politics", title: "ปราบคอร์รัปชันเด็ดขาด", desc: "เพิ่มโทษทุจริต ยึดทรัพย์ถาวร เปิดเผยข้อมูลรัฐทั้งหมด", ref: "นโยบายพรรค", url: "#", verify: false },
+    { id: 1903, party: "SRT", cat: "social", title: "เสรีภาพประชาชน", desc: "ปลดล็อกเสรีภาพในการแสดงออก ยกเลิกกฎหมายที่จำกัดสิทธิประชาชน", ref: "นโยบายพรรค", url: "#", verify: false },
 
-    // --- ชาติไทยพัฒนา (CTP) ---
-    { id: 1301, party: "CTP", cat: "economy", title: "Green Economy", desc: "สร้างรายได้จากการขายคาร์บอนเครดิตภาคเกษตร", ref: "WoW Thailand", url: "https://www.chartthaipattana.or.th", verify: true },
-    { id: 1302, party: "CTP", cat: "social", title: "น้ำบาดาลทุกตำบล", desc: "เจาะน้ำบาดาลขนาดใหญ่แก้ภัยแล้ง มีน้ำประปาสะอาดทุกหมู่บ้าน", ref: "นโยบายพรรค", url: "https://www.chartthaipattana.or.th", verify: true },
-    { id: 1303, party: "CTP", cat: "social", title: "เมืองอารยสถาปัตย์", desc: "ปรับปรุงเมืองให้รองรับผู้สูงอายุและคนพิการ (Universal Design)", ref: "นโยบายพรรค", url: "https://www.chartthaipattana.or.th", verify: true },
-    { id: 1304, party: "CTP", cat: "education", title: "เกษตรกรรุ่นใหม่", desc: "สร้าง Smart Farmer สนับสนุนเทคโนโลยีการเกษตรแม่นยำ", ref: "นโยบายพรรค", url: "https://www.chartthaipattana.or.th", verify: true },
-    { id: 1305, party: "CTP", cat: "security", title: "Green Security", desc: "ความมั่นคงทางทรัพยากรธรรมชาติและสิ่งแวดล้อม", ref: "WoW Thailand", url: "https://www.chartthaipattana.or.th", verify: true },
-    { id: 1306, party: "CTP", cat: "social", title: "5x5 ฝ่าวิกฤตประชากร", desc: "มาตรการรองรับสังคมสูงวัย พัฒนาคุณภาพชีวิตผู้สูงอายุและคนพิการ", ref: "นโยบายสังคม", url: "https://www.chartthaipattana.or.th", verify: true },
-    { id: 1307, party: "CTP", cat: "economy", title: "Carbon Credit Hub", desc: "ผลักดันไทยเป็นศูนย์กลางซื้อขายคาร์บอนเครดิตแห่งอาเซียน", ref: "นโยบายสิ่งแวดล้อม", url: "https://www.chartthaipattana.or.th", verify: true },
-    { id: 1308, party: "CTP", cat: "economy", title: "ท่องเที่ยวคาร์บอนต่ำ", desc: "ส่งเสริมการท่องเที่ยวเชิงอนุรักษ์ สร้างรายได้สู่ชุมชน", ref: "นโยบายท่องเที่ยว", url: "https://www.chartthaipattana.or.th", verify: true },
+    // --- พรรคเล็กอื่นๆ (OTH) - policies from former CTP, TKM, OKM ---
+    { id: 2001, party: "OTH", cat: "economy", title: "Green Economy", desc: "สร้างรายได้จากการขายคาร์บอนเครดิตภาคเกษตร", ref: "WoW Thailand", url: "#", verify: false },
+    { id: 2002, party: "OTH", cat: "social", title: "น้ำบาดาลทุกตำบล", desc: "เจาะน้ำบาดาลขนาดใหญ่แก้ภัยแล้ง มีน้ำประปาสะอาดทุกหมู่บ้าน", ref: "นโยบายพรรค", url: "#", verify: false },
+    { id: 2003, party: "OTH", cat: "politics", title: "Single Command ภัยพิบัติ", desc: "นายกฯ สั่งการภัยพิบัติด้วยตัวเอง บูรณาการข้อมูลดาวเทียม THEOS-2", ref: "Nation Debate", url: "#", verify: false },
+    { id: 2004, party: "OTH", cat: "security", title: "ปราบสแกมเมอร์ใน 60 วัน", desc: "ใช้เทคโนโลยีบล็อกบัญชีม้าและเส้นทางการเงินผิดกฎหมายภายใน 2 เดือน", ref: "Nation Debate", url: "#", verify: false },
+    { id: 2005, party: "OTH", cat: "education", title: "AI ในห้องเรียน", desc: "นำ AI มาช่วยครูสอนและวิเคราะห์พัฒนาการเด็กรายบุคคล", ref: "วิสัยทัศน์ ดร.เอ้", url: "#", verify: false },
+    { id: 2006, party: "OTH", cat: "economy", title: "อัดฉีดงบ 5 แสนล้าน", desc: "เร่งรัดงบลงทุนค้างท่อ 5 แสนล้านบาทเข้าระบบภายในไตรมาส 2 เพื่อจ้างงานท้องถิ่น", ref: "Nation Debate", url: "#", verify: false },
+    { id: 2007, party: "OTH", cat: "environment", title: "Carbon Credit Hub", desc: "ผลักดันไทยเป็นศูนย์กลางซื้อขายคาร์บอนเครดิตแห่งอาเซียน", ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: false },
+    { id: 2008, party: "OTH", cat: "social", title: "เมืองอารยสถาปัตย์", desc: "ปรับปรุงเมืองให้รองรับผู้สูงอายุและคนพิการ (Universal Design)", ref: "นโยบายพรรค", url: "#", verify: false },
 ];

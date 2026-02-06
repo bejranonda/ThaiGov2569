@@ -32,9 +32,52 @@ body {
 .stagger-6 { animation-delay: 0.8s; }
 .stagger-7 { animation-delay: 0.95s; }
 
-/* Initially hidden for stagger animation */
-.stagger-init {
-    opacity: 0;
+/* ===== FLOATING EMOJI ANIMATIONS ===== */
+
+@keyframes float-drift-1 {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.15; }
+    25% { transform: translateY(-30px) rotate(10deg); opacity: 0.25; }
+    50% { transform: translateY(-15px) rotate(-5deg); opacity: 0.2; }
+    75% { transform: translateY(-40px) rotate(8deg); opacity: 0.15; }
+}
+
+@keyframes float-drift-2 {
+    0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.12; }
+    33% { transform: translateY(-25px) rotate(-8deg); opacity: 0.22; }
+    66% { transform: translateY(-45px) rotate(12deg); opacity: 0.18; }
+}
+
+@keyframes float-drift-3 {
+    0%, 100% { transform: translateY(0px) rotate(5deg); opacity: 0.1; }
+    50% { transform: translateY(-35px) rotate(-10deg); opacity: 0.2; }
+}
+
+.float-emoji {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
+    font-size: 2rem;
+}
+
+.float-emoji-1 { animation: float-drift-1 8s ease-in-out infinite; }
+.float-emoji-2 { animation: float-drift-2 10s ease-in-out infinite; }
+.float-emoji-3 { animation: float-drift-3 12s ease-in-out infinite; }
+.float-emoji-4 { animation: float-drift-1 9s ease-in-out infinite 2s; }
+.float-emoji-5 { animation: float-drift-2 11s ease-in-out infinite 1s; }
+.float-emoji-6 { animation: float-drift-3 7s ease-in-out infinite 3s; }
+
+/* ===== STREAMING TEXT ===== */
+
+@keyframes blink-cursor {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+}
+
+.streaming-cursor::after {
+    content: '|';
+    animation: blink-cursor 0.8s infinite;
+    color: #3b82f6;
+    font-weight: bold;
 }
 
 /* ===== BUTTON SHINE ===== */
@@ -100,10 +143,11 @@ body {
 .card-glow-blue-light { box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.3), 0 4px 12px -2px rgba(37, 99, 235, 0.15); }
 .card-glow-blue-dark { box-shadow: 0 0 0 1px rgba(30, 64, 175, 0.3), 0 4px 12px -2px rgba(30, 64, 175, 0.15); }
 .card-glow-cyan { box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.3), 0 4px 12px -2px rgba(6, 182, 212, 0.15); }
-.card-glow-pink { box-shadow: 0 0 0 1px rgba(236, 72, 153, 0.3), 0 4px 12px -2px rgba(236, 72, 153, 0.15); }
 .card-glow-amber { box-shadow: 0 0 0 1px rgba(180, 83, 9, 0.3), 0 4px 12px -2px rgba(180, 83, 9, 0.15); }
-.card-glow-cyan-light { box-shadow: 0 0 0 1px rgba(34, 211, 238, 0.3), 0 4px 12px -2px rgba(34, 211, 238, 0.15); }
-.card-glow-emerald { box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.3), 0 4px 12px -2px rgba(16, 185, 129, 0.15); }
+.card-glow-yellow { box-shadow: 0 0 0 1px rgba(202, 138, 4, 0.3), 0 4px 12px -2px rgba(202, 138, 4, 0.15); }
+.card-glow-rose { box-shadow: 0 0 0 1px rgba(244, 63, 94, 0.3), 0 4px 12px -2px rgba(244, 63, 94, 0.15); }
+.card-glow-indigo { box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.3), 0 4px 12px -2px rgba(79, 70, 229, 0.15); }
+.card-glow-gray { box-shadow: 0 0 0 1px rgba(107, 114, 128, 0.3), 0 4px 12px -2px rgba(107, 114, 128, 0.15); }
 
 /* ===== TOOLTIP SYSTEM ===== */
 
@@ -207,7 +251,7 @@ body {
     display: none;
 }
 
-/* ===== FADE-IN (existing, keep) ===== */
+/* ===== FADE-IN ===== */
 
 @keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }

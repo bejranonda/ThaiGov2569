@@ -8,15 +8,7 @@ import {
 
 export const PARTIES = [
     {
-        id: 'PTP', name: 'เพื่อไทย', seats: 141, color: 'bg-red-600', text: 'text-red-600', policies: {
-            finance: 'เราจะดัน Digital Wallet และ GDP โต 5% ทันทีครับ',
-            defense: 'ปฏิรูปกองทัพแบบค่อยเป็นค่อยไป เน้นทหารอาสา',
-            transport: 'รถไฟฟ้า 20 บาทตลอดสาย ทำได้จริงแน่นอน',
-            general: 'เราเน้นปากท้องและเศรษฐกิจเป็นหลักครับ'
-        }
-    },
-    {
-        id: 'PP', name: 'ประชาชน', seats: 151, color: 'bg-orange-500', text: 'text-orange-500', policies: {
+        id: 'PP', name: 'ประชาชน', seats: 170, color: 'bg-orange-500', text: 'text-orange-500', policies: {
             finance: 'ทลายทุนผูกขาด และทำงบประมาณฐานศูนย์ (Zero-based)',
             defense: 'ยกเลิกเกณฑ์ทหาร 100% และลดนายพล',
             interior: 'กระจายอำนาจ เลือกตั้งผู้ว่าฯ ทั่วประเทศ',
@@ -24,7 +16,7 @@ export const PARTIES = [
         }
     },
     {
-        id: 'BJT', name: 'ภูมิใจไทย', seats: 71, color: 'bg-blue-700', text: 'text-blue-700', policies: {
+        id: 'BJT', name: 'ภูมิใจไทย', seats: 111, color: 'bg-blue-700', text: 'text-blue-700', policies: {
             interior: 'แก้ระเบียบมหาดไทย ให้ชาวบ้านทำกินสะดวก',
             health: 'ฟอกไตฟรีทุกอำเภอ เครื่องฉายแสงทุกจังหวัด',
             energy: 'ฟรีโซล่าเซลล์ ลดค่าไฟทันที',
@@ -32,52 +24,65 @@ export const PARTIES = [
         }
     },
     {
-        id: 'PPRP', name: 'พลังประชารัฐ', seats: 40, color: 'bg-blue-600', text: 'text-blue-600', policies: {
-            finance: 'บัตรประชารัฐ 700 บาท บวกเบี้ยคนชรา',
-            interior: 'มีเราไม่มีแล้ง บริหารจัดการน้ำชุมชน',
-            general: 'ก้าวข้ามความขัดแย้ง ดูแลกลุ่มเปราะบาง'
+        id: 'PTP', name: 'เพื่อไทย', seats: 84, color: 'bg-red-600', text: 'text-red-600', policies: {
+            finance: 'เราจะดัน Digital Wallet และ GDP โต 5% ทันทีครับ',
+            defense: 'ปฏิรูปกองทัพแบบค่อยเป็นค่อยไป เน้นทหารอาสา',
+            transport: 'รถไฟฟ้า 20 บาทตลอดสาย ทำได้จริงแน่นอน',
+            general: 'เราเน้นปากท้องและเศรษฐกิจเป็นหลักครับ'
         }
     },
     {
-        id: 'UTN', name: 'รทสช.', seats: 36, color: 'bg-blue-800', text: 'text-blue-800', policies: {
-            energy: 'รื้อโครงสร้างพลังงาน ค่าไฟต้องถูกลง',
-            defense: 'ปกป้องสถาบันฯ และความมั่นคงชายแดน',
-            general: 'ทำแล้ว ทำอยู่ ทำต่อ เน้นความสงบ'
-        }
-    },
-    {
-        id: 'DEM', name: 'ประชาธิปัตย์', seats: 25, color: 'bg-cyan-500', text: 'text-cyan-500', policies: {
+        id: 'DEM', name: 'ประชาธิปัตย์', seats: 61, color: 'bg-cyan-500', text: 'text-cyan-500', policies: {
             finance: 'ประกันรายได้เกษตรกร และธนาคารหมู่บ้าน',
             education: 'เรียนฟรี มีงานทำ สร้างคนรุ่นใหม่',
             general: 'ประชาธิปไตยสุจริต แก้ปัญหาอย่างยั่งยืน'
         }
     },
     {
-        id: 'CTP', name: 'ชาติไทยพัฒนา', seats: 10, color: 'bg-pink-500', text: 'text-pink-500', policies: {
-            environment: 'Green Economy ขายคาร์บอนเครดิต',
-            general: 'รับฟัง ทำจริง ไม่ขัดแย้งกับใคร'
+        id: 'SET', name: 'เศรษฐกิจ', seats: 19, color: 'bg-yellow-600', text: 'text-yellow-600', policies: {
+            finance: 'พัฒนาเศรษฐกิจฐานรากด้วยนโยบายเชิงโครงสร้าง',
+            general: 'เศรษฐกิจดี ประชาชนอยู่ดีกินดี'
         }
     },
     {
-        id: 'PCC', name: 'ประชาชาติ', seats: 9, color: 'bg-amber-700', text: 'text-amber-700', policies: {
+        id: 'UTN', name: 'รวมไทยสร้างชาติ', seats: 10, color: 'bg-blue-800', text: 'text-blue-800', policies: {
+            energy: 'รื้อโครงสร้างพลังงาน ค่าไฟต้องถูกลง',
+            defense: 'ปกป้องสถาบันฯ และความมั่นคงชายแดน',
+            general: 'ทำแล้ว ทำอยู่ ทำต่อ เน้นความสงบ'
+        }
+    },
+    {
+        id: 'TST', name: 'ไทยสร้างไทย', seats: 9, color: 'bg-rose-500', text: 'text-rose-500', policies: {
+            finance: 'กองทุน SME 3 แสนล้าน ดอกเบี้ยต่ำ',
+            education: 'จบ ป.ตรี อายุ 18 และเรียนฟรีจริง',
+            general: 'สร้างโอกาสใหม่ให้คนไทยทุกคน'
+        }
+    },
+    {
+        id: 'PCC', name: 'ประชาชาติ', seats: 7, color: 'bg-amber-700', text: 'text-amber-700', policies: {
             justice: 'ล้างหนี้ กยศ. และคืนความยุติธรรม',
             interior: 'สันติภาพชายแดนใต้ พหุวัฒนธรรม',
             general: 'สร้างความเป็นธรรม ลดความเหลื่อมล้ำ'
         }
     },
     {
-        id: 'TKM', name: 'ไทยก้าวใหม่', seats: 5, color: 'bg-cyan-400', text: 'text-cyan-400', policies: {
-            education: 'ธนู 4 ดอก ปฏิรูปการศึกษาจบไว',
-            tech: 'ปราบสแกมเมอร์ และใช้ AI บริหารประเทศ',
-            general: 'ใช้เทคโนโลยีสร้างคน สร้างชาติ'
+        id: 'PPRP', name: 'พลังประชารัฐ', seats: 6, color: 'bg-blue-600', text: 'text-blue-600', policies: {
+            finance: 'บัตรประชารัฐ 700 บาท บวกเบี้ยคนชรา',
+            interior: 'มีเราไม่มีแล้ง บริหารจัดการน้ำชุมชน',
+            general: 'ก้าวข้ามความขัดแย้ง ดูแลกลุ่มเปราะบาง'
         }
     },
     {
-        id: 'OKM', name: 'โอกาสใหม่', seats: 3, color: 'bg-emerald-500', text: 'text-emerald-500', policies: {
-            finance: 'อัดฉีดงบ 5 แสนล้านเข้าระบบทันที',
-            general: 'สร้างโอกาสใหม่ให้คนไทยทุกคน'
+        id: 'SRT', name: 'เสรีรวมไทย', seats: 5, color: 'bg-indigo-600', text: 'text-indigo-600', policies: {
+            defense: 'ปฏิรูปกองทัพอย่างจริงจัง ยกเลิกเกณฑ์ทหาร',
+            general: 'เสรีภาพ ความยุติธรรม ปราบคอร์รัปชัน'
         }
-    }
+    },
+    {
+        id: 'OTH', name: 'พรรคเล็กอื่นๆ', seats: 18, color: 'bg-gray-500', text: 'text-gray-500', policies: {
+            general: 'พรรคขนาดเล็กรวมกัน มีความหลากหลายของนโยบาย'
+        }
+    },
 ];
 
 export const MINISTRIES = [

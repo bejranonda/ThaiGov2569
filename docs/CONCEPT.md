@@ -4,7 +4,7 @@
 
 **Sim-Government: Thailand 2569** is an interactive political simulation game that lets players experience the full lifecycle of forming and running a Thai government. It is the second installment in the **"Thai Election 2569"** series, designed to engage citizens with the democratic process through gameplay.
 
-**Version:** 0.3.0
+**Version:** 0.4.0
 **Platform:** Web (React + Tailwind CSS)
 **Live:** https://simgov2569.autobahn.bot
 
@@ -27,7 +27,7 @@ The "Thai Election 2569" series consists of two complementary games that togethe
 
 - **Timing:** Designed for the period *after* the election
 - **Core Experience:** Players take on the role of a political leader who must form a coalition government, select key policies within a budget, appoint cabinet ministers, govern through AI-powered conversations, and receive a scored evaluation of their performance
-- **Outcome:** A complete simulation with measurable outcomes -- coalition stability score, policy diversity rating, cabinet expertise assessment, engagement level, and an overall letter grade
+- **Outcome:** A complete simulation with measurable outcomes -- coalition stability score, policy diversity rating, cabinet expertise assessment, engagement level, and overall score out of 100
 - **Purpose:** Deepens understanding of how governments form and function after an election, with quantifiable feedback on decision quality
 - **Tech:** React 18, Cloudflare Workers AI, light governmental theme
 - **URL:** https://simgov2569.autobahn.bot
@@ -60,11 +60,11 @@ Rather than presenting information passively (articles, infographics), the serie
 
 The game progressively introduces complexity through its 5-step flow:
 
-1. **Coalition Building** -- Binary choice (include/exclude parties), simple arithmetic (reach 250 seats)
-2. **Policy Selection** -- Budget system (max 10 policies), accordion categories, introducing resource constraints
+1. **Coalition Building** -- Binary choice (include/exclude parties), simple arithmetic (reach 250 seats), parties sorted by seats descending
+2. **Policy Selection** -- Step-through 6 categories, randomized order, no party names shown, select as many policies as desired
 3. **Cabinet Allocation** -- Map parties to ministries, introducing institutional structure and expertise matching
-4. **Government Chat** -- Open-ended AI conversation, introducing political discourse and opposition dynamics
-5. **Results & Scoring** -- Quantified feedback across 4 dimensions, letter grade, aggregate comparison
+4. **Government Chat** -- 1 question limit, streaming text responses, action buttons (reshuffle or confirm)
+5. **Results & Scoring** -- Quantified feedback across 4 renamed dimensions, dynamic commentary, screenshot sharing
 
 Each step builds on the previous one, gradually increasing engagement depth while providing clear feedback loops.
 
@@ -72,18 +72,20 @@ Each step builds on the previous one, gradually increasing engagement depth whil
 
 Unlike v0.2.0 which was deliberately open-ended, v0.3.0 introduces a **scoring system** that gives players concrete feedback on their decisions while maintaining multiple valid paths:
 
-- **Coalition Stability (25 pts)**: Rewards secure margins above the 250-seat threshold
-- **Policy Diversity (25 pts)**: Rewards breadth across issue categories
-- **Cabinet Expertise (25 pts)**: Rewards matching ministers to parties with relevant policy platforms
-- **Engagement (25 pts)**: Rewards thorough exploration through chat
+- **เสถียรภาพรัฐบาล (25 pts)**: Rewards secure margins above the 250-seat threshold
+- **นโยบายครอบคลุมทุกมิติ (25 pts)**: Rewards breadth across 6 issue categories
+- **ครม. ตรงกับจุดแข็งพรรค (25 pts)**: Rewards matching ministers to parties with relevant policy platforms
+- **ถามคำถามสำคัญ (25 pts)**: Binary score for asking a question to the government
 
-The grade scale (A-F) provides immediate, intuitive feedback while the breakdown shows where players excelled or struggled.
+Dynamic commentary provides contextual feedback based on the score breakdown, rather than letter grades.
 
 ### 5. Celebration & Social Proof
 
-- **Confetti Moment**: A party-colored celebration when entering government creates a sense of achievement
-- **Aggregate Stats**: Public leaderboards show PM distribution, grade distribution, and averages -- giving players context for their performance
-- **Results Without Playing**: The "ดูผลโหวต" button lets curious visitors see aggregate data without committing to a full game
+- **Emoji Confetti**: Party-specific emoji symbols (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) create a celebration moment when entering government
+- **Streaming Text**: AI responses stream character-by-character with a blinking cursor for dramatic effect
+- **Screenshot Sharing**: html2canvas integration lets players share their results as images
+- **Aggregate Stats**: Public leaderboards show PM distribution and score averages
+- **Results Without Playing**: The "ดูผลโหวตและการตั้งรัฐบาล" button lets curious visitors see aggregate data
 
 ---
 
@@ -95,28 +97,20 @@ Sim-Thailand uses a dark space/cyberpunk aesthetic (slate-950 background, neon g
 1. **Visual differentiation** -- Immediately signals this is a different game/phase
 2. **Tonal appropriateness** -- A light, clean aesthetic feels more "official" and "governmental," matching the serious theme of forming a real government
 
-### Policy Budget System
+### Policy Step-Through Categories
 
-The shift from "choose 3+ policies" to "budget of 10 policies" creates meaningful decision pressure:
-- **Resource constraint**: Players cannot select everything they want
-- **Trade-offs**: Choosing one policy often means excluding another
-- **Visual feedback**: Dot meter provides constant budget awareness
-- **Exhaustion moment**: When budget hits 0, cards become disabled -- creating a clear "no more" moment
-
-### Accordion Categories
-
-Replacing the flat grid with collapsible accordions addresses the overwhelming nature of 132 policies:
-- **Cognitive load**: Players see categories first, policies second
-- **Progressive disclosure**: Only expanded category shows its policies
-- **Counts and badges**: "เลือกแล้ว X" badges help players track selections per category
-- **Search exception**: When searching, flat layout returns for filtered results
+The step-through category flow reduces cognitive load while maintaining depth:
+- **Sequential navigation**: Players go through 6 categories one at a time
+- **Progress bar**: Visual dots show progress through categories
+- **Randomized order**: Fisher-Yates shuffle presents policies in random order
+- **No party names**: Policy cards hide affiliations to reduce bias
+- **No budget limit**: Players can select as many policies as they want
 
 ### Sticky Header
 
-The always-visible header serves three critical purposes:
-- **Budget awareness**: Players always know their remaining budget
+The always-visible header serves critical purposes:
 - **Navigation**: Back button and next button always accessible
-- **Progress**: Counter shows policies selected vs maximum
+- **Progress**: Counter shows total policies selected and current category
 
 ### Cabinet Reshuffle Limit
 
@@ -149,8 +143,8 @@ The 100-point scoring system balances multiple dimensions of governance quality:
 - **Rationale**: Secure governments govern more effectively; runaway majorities (>350 seats) don't earn additional points
 - **Lesson**: Parliamentary stability matters, but excessive dominance isn't the goal
 
-### Policy Diversity (25 pts)
-- **Formula**: Unique categories covered / 10 total categories
+### นโยบายครอบคลุมทุกมิติ (Policy Diversity) (25 pts)
+- **Formula**: Unique categories covered / 6 total categories
 - **Rationale**: Governments with broader policy portfolios address more citizen needs
 - **Lesson**: Narrow policy focus limits impact; breadth is valuable
 
@@ -159,12 +153,12 @@ The 100-point scoring system balances multiple dimensions of governance quality:
 - **Rationale**: Ministers with relevant policy backgrounds govern more effectively
 - **Lesson**: Personnel assignments should match expertise
 
-### Engagement (25 pts)
-- **Formula**: Chat messages sent, capped at 10
-- **Rationale**: Thorough exploration of governance issues leads to better understanding
-- **Lesson**: Engagement matters; the game rewards curiosity
+### ถามคำถามสำคัญ (Engagement) (25 pts)
+- **Formula**: Binary score (25 if asked question, 0 if not)
+- **Rationale**: Engaging with the government through questions demonstrates active citizenship
+- **Lesson**: Participation matters; asking questions is fundamental to democracy
 
-The grade scale provides intuitive feedback: A (90+) = excellent, B (75+) = good, C (60+) = adequate, D (40+) = poor, F (<40) = failing.
+Dynamic commentary provides contextual feedback based on the score breakdown, rather than letter grades.
 
 ---
 
@@ -211,6 +205,7 @@ All data is used for educational and simulation purposes only, as stated in the 
 - **Lucide React** for consistent iconography
 - **Anuphan** Thai font (Google Fonts) for professional Thai typography
 - **canvas-confetti** (code-split, ~11KB) for celebration effects
+- **html2canvas** (code-split, ~201KB) for screenshot sharing
 
 ### Backend
 - **Cloudflare Pages Functions** (serverless)
@@ -237,8 +232,18 @@ All data is used for educational and simulation purposes only, as stated in the 
 - ✅ Cabinet reshuffle limits
 - ✅ Celebration moment (confetti)
 
+### Completed in v0.4.0
+- ✅ Data update with 2026 poll numbers (11 parties, 500 seats)
+- ✅ Intro enhancements (dev credits, floating emojis, poll links)
+- ✅ Policy step-through categories (no budget limit, randomized, no party names)
+- ✅ Coalition sorted by seats descending
+- ✅ Emoji confetti symbols with shapeFromText()
+- ✅ Chat: 1 question limit, streaming text, action buttons
+- ✅ Scoring: renamed categories, no letter grades, dynamic commentary
+- ✅ Screenshot sharing with html2canvas
+- ✅ AI prompt improvements (no fixed closing phrases)
+
 ### Potential Future Features
-- **Social Sharing**: Allow players to share their government configuration and score on social media
 - **Multiplayer Debate**: Let two players form competing coalitions and debate
 - **Historical Comparison**: Compare player's government with actual government formations after the real election
 - **Policy Impact Simulation**: Show how chosen policies affect metrics over time
@@ -254,6 +259,7 @@ All data is used for educational and simulation purposes only, as stated in the 
 | 0.1.0 | Initial | Basic game flow (4 steps), AI chat, data persistence |
 | 0.2.0 | Jan 2025 | Intro screen, step indicator, party colors, animations, Sim-Thailand connection |
 | 0.3.0 | Feb 2025 | Policy budget, accordion, cabinet reshuffle limit, confetti, scoring system, results screen, aggregate stats |
+| 0.4.0 | Feb 2026 | Data update (11 parties, 500 seats), policy step-through, emoji confetti, chat streaming, screenshot sharing, AI prompt improvements |
 
 ---
 
