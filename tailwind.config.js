@@ -17,6 +17,9 @@ export default {
                 'check-pop': 'check-pop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
                 'card-pulse': 'card-select-pulse 0.3s ease-out forwards',
                 'slide-up': 'slide-up 0.5s ease-out forwards',
+                'score-fill': 'score-fill 1.5s ease-out forwards',
+                'grade-pop': 'grade-pop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.8s both',
+                'accordion-open': 'accordion-open 0.3s ease-out forwards',
             },
             keyframes: {
                 'float': {
@@ -47,6 +50,19 @@ export default {
                 'slide-up': {
                     'from': { opacity: '0', transform: 'translateY(20px)' },
                     'to': { opacity: '1', transform: 'translateY(0)' },
+                },
+                'score-fill': {
+                    'from': { strokeDasharray: '0 440' },
+                },
+                'grade-pop': {
+                    '0%': { transform: 'scale(0) rotate(-15deg)', opacity: '0' },
+                    '60%': { transform: 'scale(1.3) rotate(5deg)', opacity: '1' },
+                    '80%': { transform: 'scale(0.95) rotate(-2deg)' },
+                    '100%': { transform: 'scale(1) rotate(0)', opacity: '1' },
+                },
+                'accordion-open': {
+                    'from': { opacity: '0', maxHeight: '0', transform: 'translateY(-8px)' },
+                    'to': { opacity: '1', maxHeight: '2000px', transform: 'translateY(0)' },
                 },
             },
         },

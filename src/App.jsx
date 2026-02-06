@@ -5,6 +5,8 @@ import {
     AlertCircle,
     Send,
     ChevronRight,
+    ChevronDown,
+    ChevronUp,
     RotateCcw,
     Search,
     Check,
@@ -15,9 +17,11 @@ import {
     FileText,
     MessageSquare,
     ArrowRight,
+    ArrowLeft,
     Play,
     Briefcase,
     ExternalLink,
+    BarChart3,
 } from 'lucide-react';
 import { PARTIES, MINISTRIES, TOTAL_SEATS, MAJORITY_THRESHOLD } from './data';
 import { POLICIES } from './policies';
@@ -41,10 +45,26 @@ const STEP_LABELS = [
     { icon: FileText, label: 'นโยบาย' },
     { icon: Briefcase, label: 'ครม.' },
     { icon: MessageSquare, label: 'บริหาร' },
+    { icon: BarChart3, label: 'ผลลัพธ์' },
+];
+
+const POLICY_BUDGET = 10;
+
+const POLICY_CATEGORIES = [
+    { id: 'economy', name: 'เศรษฐกิจ' },
+    { id: 'social', name: 'สังคม' },
+    { id: 'education', name: 'การศึกษา' },
+    { id: 'security', name: 'ความมั่นคง' },
+    { id: 'environment', name: 'สิ่งแวดล้อม' },
+    { id: 'politics', name: 'การเมือง' },
+    { id: 'tech', name: 'เทคโนโลยี' },
+    { id: 'justice', name: 'ยุติธรรม' },
+    { id: 'health', name: 'สาธารณสุข' },
+    { id: 'interior', name: 'ปกครอง' },
 ];
 
 export default function PMSimulator() {
-    const [step, setStep] = useState(0); // 0: Intro, 1: Coalition, 2: Policy, 3: Cabinet, 4: Chat
+    const [step, setStep] = useState(0); // 0: Intro, 1: Coalition, 2: Policy, 3: Cabinet, 4: Chat, 5: Results
     const [selectedPolicies, setSelectedPolicies] = useState(new Set());
     const [policyCategory, setPolicyCategory] = useState('all');
     const [policySearch, setPolicySearch] = useState('');
@@ -55,6 +75,12 @@ export default function PMSimulator() {
     ]);
     const [inputMessage, setInputMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
+    const [reshuffleCount, setReshuffleCount] = useState(0);
+    const [confettiFired, setConfettiFired] = useState(false);
+    const [score, setScore] = useState(null);
+    const [aggregateStats, setAggregateStats] = useState(null);
+    const [showResults, setShowResults] = useState(false);
+    const [expandedCategory, setExpandedCategory] = useState(null);
 
     const chatEndRef = useRef(null);
 
@@ -135,6 +161,141 @@ export default function PMSimulator() {
         setCabinet(newCabinet);
     };
 
+    // --- Navigation ---
+    const navigateToStep = (targetStep) => {
+        if (targetStep >= step) return; // Only backward
+        // Going back to cabinet from chat/results costs a reshuffle
+        if (targetStep === 3 && step >= 4) {
+            if (reshuffleCount >= 2) return;
+            setReshuffleCount(prev => prev + 1);
+        }
+        setStep(targetStep);
+    };
+
+    // --- Scoring ---
+    const calculateScore = () => {
+        // Coalition stability (25 pts): margin above 250
+        const margin = Math.max(0, totalCoalitionSeats - MAJORITY_THRESHOLD);
+        const coalitionScore = Math.min(25, Math.round((margin / 100) * 25));
+
+        // Policy diversity (25 pts): unique categories covered
+        const selectedPolicyObjects = POLICIES.filter(p => selectedPolicies.has(p.id));
+        const uniqueCategories = new Set(selectedPolicyObjects.map(p => p.cat));
+        const diversityScore = Math.min(25, Math.round((uniqueCategories.size / POLICY_CATEGORIES.length) * 25));
+
+        // Cabinet expertise (25 pts): party assigned has relevant policy key
+        let expertiseMatches = 0;
+        MINISTRIES.forEach(min => {
+            const assignedPartyId = cabinet[min.id];
+            if (assignedPartyId) {
+                const party = PARTIES.find(p => p.id === assignedPartyId);
+                if (party && party.policies && party.policies[min.key]) {
+                    expertiseMatches++;
+                }
+            }
+        });
+        const cabinetScore = Math.min(25, Math.round((expertiseMatches / MINISTRIES.length) * 25));
+
+        // Engagement (25 pts): chat messages sent (capped at 10)
+        const userMessages = chatLog.filter(m => m.sender === 'user').length;
+        const engagementScore = Math.min(25, Math.round((Math.min(userMessages, 10) / 10) * 25));
+
+        const total = coalitionScore + diversityScore + cabinetScore + engagementScore;
+        let grade = 'F';
+        if (total >= 90) grade = 'A';
+        else if (total >= 75) grade = 'B';
+        else if (total >= 60) grade = 'C';
+        else if (total >= 40) grade = 'D';
+
+        return {
+            total,
+            coalition: coalitionScore,
+            diversity: diversityScore,
+            cabinet: cabinetScore,
+            engagement: engagementScore,
+            grade,
+        };
+    };
+
+    // --- Save session to backend ---
+    const saveSession = async (scoreData) => {
+        try {
+            const sessionId = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36);
+            const pmPartyId = cabinet['PM'] || coalition[0];
+            await fetch('/api/stats', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    pm_party: pmPartyId,
+                    coalition: coalition,
+                    coalition_seats: totalCoalitionSeats,
+                    selected_policies: Array.from(selectedPolicies),
+                    policy_count: selectedPolicies.size,
+                    cabinet: cabinet,
+                    chat_questions: chatLog.filter(m => m.sender === 'user').map(m => m.text),
+                    chat_count: chatLog.filter(m => m.sender === 'user').length,
+                    score_total: scoreData.total,
+                    score_coalition: scoreData.coalition,
+                    score_diversity: scoreData.diversity,
+                    score_cabinet: scoreData.cabinet,
+                    score_engagement: scoreData.engagement,
+                    grade: scoreData.grade,
+                }),
+            });
+        } catch (err) {
+            console.error('Failed to save session:', err);
+        }
+    };
+
+    // --- Fetch aggregate stats ---
+    const fetchAggregateStats = async () => {
+        try {
+            const res = await fetch('/api/stats');
+            if (res.ok) {
+                const data = await res.json();
+                setAggregateStats(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch stats:', err);
+        }
+    };
+
+    // --- Fire confetti ---
+    const fireConfetti = async () => {
+        if (confettiFired) return;
+        setConfettiFired(true);
+        try {
+            const confettiModule = await import('canvas-confetti');
+            const confetti = confettiModule.default;
+            const pmPartyId = cabinet['PM'] || coalition[0];
+            const colorMap = {
+                PP: ['#f97316', '#ea580c', '#fb923c'],
+                PTP: ['#dc2626', '#ef4444', '#f87171'],
+                BJT: ['#1d4ed8', '#2563eb', '#3b82f6'],
+                PPRP: ['#2563eb', '#3b82f6', '#60a5fa'],
+                UTN: ['#1e3a5f', '#1e40af', '#3b82f6'],
+                DEM: ['#06b6d4', '#22d3ee', '#67e8f9'],
+                CTP: ['#ec4899', '#f472b6', '#f9a8d4'],
+                PCC: ['#b45309', '#d97706', '#f59e0b'],
+                TKM: ['#22d3ee', '#67e8f9', '#a5f3fc'],
+                OKM: ['#10b981', '#34d399', '#6ee7b7'],
+            };
+            const colors = colorMap[pmPartyId] || ['#3b82f6', '#6366f1', '#8b5cf6'];
+
+            // Left cannon
+            confetti({ particleCount: 80, spread: 70, origin: { x: 0.1, y: 0.6 }, colors, ticks: 200 });
+            // Right cannon
+            confetti({ particleCount: 80, spread: 70, origin: { x: 0.9, y: 0.6 }, colors, ticks: 200 });
+            // Delayed burst
+            setTimeout(() => {
+                confetti({ particleCount: 50, spread: 100, origin: { x: 0.5, y: 0.4 }, colors, ticks: 150 });
+            }, 500);
+        } catch (err) {
+            console.error('Confetti failed:', err);
+        }
+    };
+
     // --- AI Chat Logic ---
     const handleSendMessage = async () => {
         if (!inputMessage.trim()) return;
@@ -194,6 +355,13 @@ export default function PMSimulator() {
         chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatLog]);
 
+    // Fire confetti when entering step 4
+    useEffect(() => {
+        if (step === 4 && !confettiFired) {
+            fireConfetti();
+        }
+    }, [step]);
+
     // --- STEP PROGRESS INDICATOR ---
     const renderStepIndicator = () => (
         <div className="flex items-center justify-center gap-0 mb-8">
@@ -201,21 +369,26 @@ export default function PMSimulator() {
                 const stepNum = i + 1;
                 const isCompleted = step > stepNum;
                 const isActive = step === stepNum;
+                const isClickable = stepNum < step && !(stepNum === 3 && step >= 4 && reshuffleCount >= 2);
                 const Icon = s.icon;
                 return (
                     <React.Fragment key={i}>
                         {i > 0 && (
-                            <div className={`step-line w-8 md:w-16 h-0.5 ${isCompleted ? 'bg-emerald-500' : 'bg-slate-200'}`} />
+                            <div className={`step-line w-6 md:w-12 h-0.5 ${isCompleted ? 'bg-emerald-500' : 'bg-slate-200'}`} />
                         )}
                         <div className="flex flex-col items-center gap-1">
-                            <div className={`step-dot w-10 h-10 rounded-full flex items-center justify-center transition-all ${isCompleted
-                                ? 'bg-emerald-500 text-white completed'
-                                : isActive
-                                    ? 'bg-blue-600 text-white active'
-                                    : 'bg-slate-200 text-slate-400'
-                                }`}>
+                            <button
+                                onClick={() => isClickable && navigateToStep(stepNum)}
+                                disabled={!isClickable}
+                                className={`step-dot w-10 h-10 rounded-full flex items-center justify-center transition-all ${isCompleted
+                                    ? 'bg-emerald-500 text-white completed'
+                                    : isActive
+                                        ? 'bg-blue-600 text-white active'
+                                        : 'bg-slate-200 text-slate-400'
+                                    } ${isClickable ? 'cursor-pointer hover:scale-110 hover:ring-4 ring-blue-200' : ''}`}
+                            >
                                 {isCompleted ? <Check size={18} /> : <Icon size={18} />}
-                            </div>
+                            </button>
                             <span className={`text-[10px] font-bold ${isActive ? 'text-blue-600' : isCompleted ? 'text-emerald-600' : 'text-slate-400'}`}>
                                 {s.label}
                             </span>
@@ -305,13 +478,37 @@ export default function PMSimulator() {
                 {/* CTA Button */}
                 <button
                     onClick={() => setStep(1)}
-                    className="btn-shine px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xl rounded-2xl shadow-xl shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mb-8 animate-slide-up stagger-6"
+                    className="btn-shine px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xl rounded-2xl shadow-xl shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mb-6 animate-slide-up stagger-6"
                 >
                     <Play size={22} /> เริ่มจัดตั้งรัฐบาล
                 </button>
 
+                {/* Bottom Navigation */}
+                <div className="flex flex-col sm:flex-row items-center gap-3 mb-8 animate-slide-up stagger-6">
+                    <a
+                        href="https://thalay.eu/policy2569"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-5 py-2.5 bg-white border border-slate-200 hover:border-blue-300 hover:bg-blue-50 text-slate-600 hover:text-blue-600 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        <FileText size={16} /> ดูนโยบายทุกพรรค <ExternalLink size={12} />
+                    </a>
+                    <button
+                        onClick={() => { setShowResults(true); fetchAggregateStats(); }}
+                        className="px-5 py-2.5 bg-white border border-slate-200 hover:border-emerald-300 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-sm"
+                    >
+                        <BarChart3 size={16} /> ดูผลโหวตและการตั้งรัฐบาล
+                    </button>
+                </div>
+
                 {/* Footer */}
                 <div className="flex flex-col items-center gap-4 animate-slide-up stagger-7">
+                    {/* Election reference */}
+                    <div className="flex flex-col items-center gap-1 text-xs text-slate-400">
+                        <span>อ้างอิงข้อมูลจำนวนที่นั่ง สส. ก่อนผลเลือกตั้ง</span>
+                        <span className="text-slate-300">อ้างอิงข้อมูลจำนวนที่นั่ง สส. หลังเลือกตั้ง: <span className="text-amber-500">รอประกาศผล</span></span>
+                    </div>
+
                     {/* Version with GitHub link */}
                     <a
                         href="https://github.com/bejranonda/ThaiGov2569"
@@ -319,49 +516,28 @@ export default function PMSimulator() {
                         rel="noopener noreferrer"
                         className="text-xs text-slate-400 hover:text-blue-500 transition-colors font-mono"
                     >
-                        Sim-Government: Thailand 2569 v0.2.0
+                        Sim-Government: Thailand 2569 v0.3.0
                     </a>
 
-                    {/* Developer credits */}
-                    <div className="flex flex-col items-center gap-2 opacity-40 hover:opacity-100 transition-all duration-300">
-                        <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Developed by</span>
+                    {/* Developer credits - logos */}
+                    <div className="flex items-center gap-4 opacity-40 hover:opacity-100 transition-all duration-300">
                         <a
                             href="https://thalay.eu/"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-slate-500 hover:text-blue-500 transition-colors"
+                            className="grayscale hover:grayscale-0 transition-all duration-300"
                         >
-                            thalay.eu
+                            <img src="https://thalay.eu/wp-content/uploads/2021/04/Thalay.eu3-Transparent150.png" alt="thalay.eu" className="h-8" />
                         </a>
                         <a
                             href="https://www.facebook.com/thalay.eu"
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-xs text-slate-500 hover:text-blue-500 transition-colors flex items-center gap-1"
+                            className="text-slate-400 hover:text-blue-600 transition-colors"
                         >
-                            <ExternalLink size={12} /> Facebook
+                            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
                         </a>
                     </div>
-
-                    {/* Policy reference */}
-                    <a
-                        href="https://thalay.eu/policy2569"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-slate-400 hover:text-blue-500 transition-colors"
-                    >
-                        อ้างอิงข้อมูลนโยบายล่าสุด: 19 มกราคม 2569
-                    </a>
-
-                    {/* Sim-Thailand link */}
-                    <a
-                        href="https://thalay.eu/sim2569"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-xs text-slate-400 hover:text-blue-500 transition-colors flex items-center gap-1"
-                    >
-                        เล่น Sim-Thailand 2569 (ภาคเลือกตั้ง) <ExternalLink size={10} />
-                    </a>
                 </div>
             </div>
         </div>
@@ -463,59 +639,126 @@ export default function PMSimulator() {
     // --- POLICY SELECTOR (Step 2) ---
     const togglePolicy = (id) => {
         const newSet = new Set(selectedPolicies);
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+        } else {
+            if (newSet.size >= POLICY_BUDGET) return; // Budget exhausted
+            newSet.add(id);
+        }
         setSelectedPolicies(newSet);
     };
 
     const renderPolicySelector = () => {
         const availablePolicies = POLICIES.filter(p => coalition.includes(p.party));
+        const budgetRemaining = POLICY_BUDGET - selectedPolicies.size;
+        const budgetExhausted = budgetRemaining <= 0;
+        const isSearching = policySearch.trim().length > 0;
 
         const filteredPolicies = availablePolicies.filter(p => {
-            const matchesCategory = policyCategory === 'all' || p.cat === policyCategory;
             const matchesSearch = p.title.toLowerCase().includes(policySearch.toLowerCase()) ||
                 p.desc.toLowerCase().includes(policySearch.toLowerCase());
-            return matchesCategory && matchesSearch;
+            return matchesSearch;
         });
 
-        const categories = [
-            { id: 'all', name: 'ทั้งหมด' },
-            { id: 'economy', name: 'เศรษฐกิจ' },
-            { id: 'social', name: 'สังคม' },
-            { id: 'education', name: 'การศึกษา' },
-            { id: 'security', name: 'ความมั่นคง' },
-            { id: 'environment', name: 'สิ่งแวดล้อม' },
-            { id: 'politics', name: 'การเมือง' },
-            { id: 'tech', name: 'เทคโนโลยี' },
-            { id: 'justice', name: 'ยุติธรรม' },
-            { id: 'health', name: 'สาธารณสุข' },
-            { id: 'interior', name: 'ปกครอง' },
-        ];
-
-        // Count policies per category
-        const categoryCounts = {};
-        categories.forEach(cat => {
-            if (cat.id === 'all') {
-                categoryCounts[cat.id] = availablePolicies.length;
-            } else {
-                categoryCounts[cat.id] = availablePolicies.filter(p => p.cat === cat.id).length;
+        // Group available policies by category
+        const groupedByCategory = {};
+        POLICY_CATEGORIES.forEach(cat => {
+            const policies = availablePolicies.filter(p => p.cat === cat.id);
+            if (policies.length > 0) {
+                const selectedInCat = policies.filter(p => selectedPolicies.has(p.id)).length;
+                groupedByCategory[cat.id] = { ...cat, policies, selectedCount: selectedInCat };
             }
         });
 
+        const renderPolicyCard = (p) => {
+            const party = PARTIES.find(pty => pty.id === p.party);
+            const isSelected = selectedPolicies.has(p.id);
+            const isDisabled = !isSelected && budgetExhausted;
+            const ps = PARTY_STYLES[p.party] || { border: 'border-blue-500', bg: 'bg-blue-50', accent: 'border-l-blue-500' };
+            return (
+                <div
+                    key={p.id}
+                    onClick={() => !isDisabled && togglePolicy(p.id)}
+                    className={`choice-card-enhanced p-4 rounded-xl border-2 relative ${isSelected
+                        ? `border-l-4 ${ps.accent} ${ps.bg} border-slate-200 shadow-md card-shimmer`
+                        : isDisabled
+                            ? 'border-slate-200 bg-white opacity-50 cursor-not-allowed'
+                            : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
+                        }`}
+                >
+                    <div className="flex justify-between items-start mb-2">
+                        <span className={`text-[10px] px-2 py-0.5 rounded text-white ${party.color}`}>
+                            {party.name}
+                        </span>
+                        {isSelected && (
+                            <span className="animate-check-pop">
+                                <Check className="text-blue-600" size={20} />
+                            </span>
+                        )}
+                    </div>
+                    <h3 className="font-bold text-slate-800 mb-1">{p.title}</h3>
+                    <p className="text-sm text-slate-600 mb-3">{p.desc}</p>
+                    <div className="text-xs text-slate-400 flex items-center gap-2">
+                        <span className="bg-slate-100 px-1.5 py-0.5 rounded uppercase">{p.cat}</span>
+                        {p.ref && <span className="text-slate-300">|</span>}
+                        {p.ref && <span className="truncate text-slate-400" title={p.ref}>{p.ref}</span>}
+                    </div>
+                </div>
+            );
+        };
+
         return (
             <div className="animate-fade-in">
-                <div className="flex justify-between items-center mb-6">
-                    <button onClick={() => setStep(1)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
-                        <RotateCcw size={16} /> แก้ไขพรรคร่วม
-                    </button>
-                    <div className="text-right">
-                        <h2 className="text-xl font-bold text-slate-800">เลือกนโยบายหลัก</h2>
-                        <p className="text-xs text-slate-500">เลือกอย่างน้อย 3 นโยบายเพื่อขับเคลื่อนประเทศ</p>
+                {/* Sticky Header */}
+                <div className="sticky top-0 z-40 bg-white/95 backdrop-blur-lg border-b border-slate-200 -mx-4 md:-mx-8 px-4 md:px-8 py-3 mb-6 shadow-sm">
+                    <div className="max-w-4xl mx-auto flex items-center justify-between gap-4">
+                        <button onClick={() => setStep(1)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium text-sm flex-shrink-0">
+                            <ArrowLeft size={16} /> แก้ไขพรรคร่วม
+                        </button>
+
+                        {/* Budget Meter */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="flex gap-1">
+                                {Array.from({ length: POLICY_BUDGET }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`w-2.5 h-2.5 rounded-full transition-all ${i < selectedPolicies.size
+                                            ? 'bg-blue-500 scale-110'
+                                            : 'bg-slate-200'
+                                            } ${budgetExhausted ? 'animate-pulse' : ''}`}
+                                    />
+                                ))}
+                            </div>
+                            <span className={`text-sm font-bold ${budgetExhausted ? 'text-red-500' : 'text-slate-600'}`}>
+                                {selectedPolicies.size}/{POLICY_BUDGET}
+                            </span>
+                        </div>
+
+                        <button
+                            onClick={() => setStep(3)}
+                            disabled={selectedPolicies.size < 3}
+                            className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-6 py-2 rounded-lg font-bold shadow transition flex items-center gap-1 text-sm flex-shrink-0"
+                        >
+                            ถัดไป {selectedPolicies.size < 3 && `(อีก ${3 - selectedPolicies.size})`} <ChevronRight size={16} />
+                        </button>
                     </div>
                 </div>
 
-                {/* Filters */}
-                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 space-y-4">
+                {/* Title */}
+                <div className="text-center mb-4">
+                    <h2 className="text-xl font-bold text-slate-800">เลือกนโยบายหลัก</h2>
+                    <p className="text-xs text-slate-500">เลือก 3-{POLICY_BUDGET} นโยบายเพื่อขับเคลื่อนประเทศ</p>
+                </div>
+
+                {/* Budget Exhausted Notice */}
+                {budgetExhausted && (
+                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-xl text-center animate-fade-in">
+                        <p className="text-amber-700 text-sm font-bold">งบนโยบายหมดแล้ว! ยกเลิกนโยบายเดิมเพื่อเลือกใหม่</p>
+                    </div>
+                )}
+
+                {/* Search */}
+                <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
                     <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400" size={20} />
                         <input
@@ -526,92 +769,51 @@ export default function PMSimulator() {
                             onChange={(e) => setPolicySearch(e.target.value)}
                         />
                     </div>
-                    <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                        {categories.map(cat => {
-                            const count = categoryCounts[cat.id] || 0;
-                            if (cat.id !== 'all' && count === 0) return null;
+                </div>
+
+                {/* Accordion Categories or Search Results */}
+                {isSearching ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                        {filteredPolicies.map(p => renderPolicyCard(p))}
+                        {filteredPolicies.length === 0 && (
+                            <div className="col-span-full text-center py-10 text-slate-500">ไม่พบนโยบายที่ค้นหา</div>
+                        )}
+                    </div>
+                ) : (
+                    <div className="space-y-3 mb-8">
+                        {Object.entries(groupedByCategory).map(([catId, catData]) => {
+                            const isExpanded = expandedCategory === catId;
                             return (
-                                <button
-                                    key={cat.id}
-                                    onClick={() => setPolicyCategory(cat.id)}
-                                    className={`px-3 py-1.5 rounded-full text-sm font-bold whitespace-nowrap transition-all flex items-center gap-1.5 ${policyCategory === cat.id
-                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                                        }`}
-                                >
-                                    {cat.name}
-                                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-mono ${policyCategory === cat.id ? 'bg-blue-500 text-blue-100' : 'bg-slate-200 text-slate-500'}`}>
-                                        {count}
-                                    </span>
-                                </button>
+                                <div key={catId} className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
+                                    <button
+                                        onClick={() => setExpandedCategory(isExpanded ? null : catId)}
+                                        className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <span className="font-bold text-slate-800">{catData.name}</span>
+                                            <span className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+                                                {catData.policies.length} นโยบาย
+                                            </span>
+                                            {catData.selectedCount > 0 && (
+                                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full font-bold">
+                                                    เลือกแล้ว {catData.selectedCount}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {isExpanded ? <ChevronUp size={20} className="text-slate-400" /> : <ChevronDown size={20} className="text-slate-400" />}
+                                    </button>
+                                    {isExpanded && (
+                                        <div className="px-4 pb-4 animate-accordion-open">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                {catData.policies.map(p => renderPolicyCard(p))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
                             );
                         })}
                     </div>
-                </div>
-
-                {/* Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-20">
-                    {filteredPolicies.map(p => {
-                        const party = PARTIES.find(pty => pty.id === p.party);
-                        const isSelected = selectedPolicies.has(p.id);
-                        const ps = PARTY_STYLES[p.party] || { border: 'border-blue-500', bg: 'bg-blue-50', accent: 'border-l-blue-500' };
-                        return (
-                            <div
-                                key={p.id}
-                                onClick={() => togglePolicy(p.id)}
-                                className={`choice-card-enhanced p-4 rounded-xl border-2 relative ${isSelected
-                                    ? `border-l-4 ${ps.accent} ${ps.bg} border-slate-200 shadow-md card-shimmer`
-                                    : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
-                                    }`}
-                            >
-                                <div className="flex justify-between items-start mb-2">
-                                    <span className={`text-[10px] px-2 py-0.5 rounded text-white ${party.color}`}>
-                                        {party.name}
-                                    </span>
-                                    {isSelected && (
-                                        <span className="animate-check-pop">
-                                            <Check className="text-blue-600" size={20} />
-                                        </span>
-                                    )}
-                                </div>
-                                <h3 className="font-bold text-slate-800 mb-1">{p.title}</h3>
-                                <p className="text-sm text-slate-600 mb-3">{p.desc}</p>
-                                <div className="text-xs text-slate-400 flex items-center gap-2">
-                                    <span className="bg-slate-100 px-1.5 py-0.5 rounded uppercase">{p.cat}</span>
-                                    {p.ref && (
-                                        <span className="text-slate-300">|</span>
-                                    )}
-                                    {p.ref && (
-                                        <span className="truncate text-slate-400" title={p.ref}>{p.ref}</span>
-                                    )}
-                                </div>
-                            </div>
-                        );
-                    })}
-                    {filteredPolicies.length === 0 && (
-                        <div className="col-span-full text-center py-10 text-slate-500">
-                            ไม่พบนโยบายที่ค้นหา
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer Bar */}
-                <div className="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-slate-200 p-4 shadow-lg z-50">
-                    <div className="max-w-4xl mx-auto flex justify-between items-center">
-                        <div>
-                            <span className="text-sm text-slate-500">เลือกแล้ว</span>
-                            <div className="text-2xl font-bold text-blue-600">{selectedPolicies.size} <span className="text-base text-slate-800">นโยบาย</span></div>
-                        </div>
-                        <button
-                            onClick={() => setStep(3)}
-                            disabled={selectedPolicies.size < 3}
-                            className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2"
-                        >
-                            ถัดไป {selectedPolicies.size < 3 && '(เลือกอีก ' + (3 - selectedPolicies.size) + ')'} <ChevronRight />
-                        </button>
-                    </div>
-                </div>
-                <div className="h-20"></div>
+                )}
             </div>
         );
     };
@@ -708,9 +910,21 @@ export default function PMSimulator() {
     const renderGovChat = () => (
         <div className="animate-fade-in h-[600px] flex flex-col">
             <div className="flex justify-between items-center mb-4">
-                <button onClick={() => setStep(3)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
-                    <RotateCcw size={16} /> ปรับ ครม.
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => { if (reshuffleCount < 2) { setReshuffleCount(prev => prev + 1); setStep(3); } }}
+                        disabled={reshuffleCount >= 2}
+                        className="text-slate-500 hover:text-blue-600 disabled:text-slate-300 disabled:cursor-not-allowed flex items-center gap-1 font-medium"
+                    >
+                        <RotateCcw size={16} /> ปรับ ครม.
+                    </button>
+                    <div className="flex items-center gap-1 text-xs text-slate-400">
+                        {[0, 1].map(i => (
+                            <div key={i} className={`w-2 h-2 rounded-full ${i < reshuffleCount ? 'bg-red-400' : 'bg-slate-200'}`} />
+                        ))}
+                        <span className="ml-1">({2 - reshuffleCount} ครั้ง)</span>
+                    </div>
+                </div>
                 <div className="flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
                     <h2 className="text-lg font-bold text-slate-800">ห้องแถลงข่าวรัฐบาล</h2>
@@ -778,13 +992,264 @@ export default function PMSimulator() {
                     </button>
                 ))}
             </div>
+
+            {/* Finish Button */}
+            <button
+                onClick={() => {
+                    const scoreData = calculateScore();
+                    setScore(scoreData);
+                    saveSession(scoreData);
+                    setStep(5);
+                }}
+                className="mt-4 w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+            >
+                <BarChart3 size={20} /> จบบริหาร - ดูผลลัพธ์
+            </button>
         </div>
     );
+
+    // --- AGGREGATE STATS VIEW ---
+    const renderAggregateStats = () => {
+        if (!aggregateStats) {
+            return (
+                <div className="text-center py-20 animate-fade-in">
+                    <div className="w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-slate-500">กำลังโหลดข้อมูล...</p>
+                </div>
+            );
+        }
+
+        const { total_games, pm_distribution, avg_score, grade_distribution } = aggregateStats;
+        const pmPartyNames = { PTP: 'เพื่อไทย', PP: 'ประชาชน', BJT: 'ภูมิใจไทย', PPRP: 'พลังประชารัฐ', UTN: 'รทสช.', DEM: 'ประชาธิปัตย์', CTP: 'ชาติไทยพัฒนา', PCC: 'ประชาชาติ', TKM: 'ไทยก้าวใหม่', OKM: 'โอกาสใหม่' };
+        const gradeColors = { A: 'bg-emerald-500', B: 'bg-blue-500', C: 'bg-amber-500', D: 'bg-orange-500', F: 'bg-red-500' };
+
+        return (
+            <div className="animate-fade-in">
+                <div className="flex items-center justify-between mb-6">
+                    <button onClick={() => setShowResults(false)} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
+                        <ArrowLeft size={16} /> กลับ
+                    </button>
+                    <h2 className="text-xl font-bold text-slate-800">สถิติการจำลอง</h2>
+                </div>
+
+                {/* Overview */}
+                <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                        <div className="text-3xl font-bold text-blue-600">{total_games}</div>
+                        <div className="text-xs text-slate-500">รัฐบาลทั้งหมด</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 text-center">
+                        <div className="text-3xl font-bold text-emerald-600">{avg_score || '-'}</div>
+                        <div className="text-xs text-slate-500">คะแนนเฉลี่ย</div>
+                    </div>
+                </div>
+
+                {/* PM Distribution */}
+                {Object.keys(pm_distribution).length > 0 && (
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+                        <h3 className="font-bold text-slate-800 mb-3">นายกที่ผู้เล่นเลือก</h3>
+                        <div className="space-y-2">
+                            {Object.entries(pm_distribution)
+                                .sort(([, a], [, b]) => b - a)
+                                .map(([partyId, count]) => {
+                                    const pct = total_games > 0 ? Math.round((count / total_games) * 100) : 0;
+                                    const party = PARTIES.find(p => p.id === partyId);
+                                    return (
+                                        <div key={partyId} className="flex items-center gap-3">
+                                            <span className="text-sm font-bold text-slate-700 w-24 truncate">{pmPartyNames[partyId] || partyId}</span>
+                                            <div className="flex-grow h-4 bg-slate-100 rounded-full overflow-hidden">
+                                                <div className={`h-full rounded-full ${party?.color || 'bg-blue-500'}`} style={{ width: `${pct}%` }} />
+                                            </div>
+                                            <span className="text-xs text-slate-500 w-12 text-right">{pct}%</span>
+                                        </div>
+                                    );
+                                })}
+                        </div>
+                    </div>
+                )}
+
+                {/* Grade Distribution */}
+                {Object.keys(grade_distribution).length > 0 && (
+                    <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
+                        <h3 className="font-bold text-slate-800 mb-3">เกรดผู้เล่น</h3>
+                        <div className="flex gap-3 justify-center">
+                            {['A', 'B', 'C', 'D', 'F'].map(grade => (
+                                <div key={grade} className="text-center">
+                                    <div className={`w-12 h-12 rounded-full ${gradeColors[grade]} text-white font-bold text-lg flex items-center justify-center mb-1`}>
+                                        {grade}
+                                    </div>
+                                    <div className="text-xs text-slate-500">{grade_distribution[grade] || 0}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {total_games === 0 && (
+                    <div className="text-center py-10 text-slate-400">
+                        <BarChart3 size={48} className="mx-auto mb-4 opacity-30" />
+                        <p>ยังไม่มีข้อมูลสถิติ</p>
+                        <p className="text-sm">เล่นเกมเพื่อเริ่มเก็บข้อมูล!</p>
+                    </div>
+                )}
+            </div>
+        );
+    };
+
+    // --- RESULTS SCREEN (Step 5) ---
+    const renderResults = () => {
+        if (!score) return null;
+
+        const pmPartyId = cabinet['PM'] || coalition[0];
+        const pmParty = PARTIES.find(p => p.id === pmPartyId);
+        const coalitionParties = PARTIES.filter(p => coalition.includes(p.id));
+        const gradeColors = { A: 'from-emerald-400 to-emerald-600', B: 'from-blue-400 to-blue-600', C: 'from-amber-400 to-amber-600', D: 'from-orange-400 to-orange-600', F: 'from-red-400 to-red-600' };
+        const gradeEmoji = { A: 'ยอดเยี่ยม!', B: 'ดีมาก!', C: 'พอใช้', D: 'ต้องปรับปรุง', F: 'ล้มเหลว' };
+
+        const scoreCategories = [
+            { label: 'เสถียรภาพรัฐบาล', value: score.coalition, max: 25, color: 'bg-emerald-500' },
+            { label: 'ความหลากหลายนโยบาย', value: score.diversity, max: 25, color: 'bg-blue-500' },
+            { label: 'ความเชี่ยวชาญ ครม.', value: score.cabinet, max: 25, color: 'bg-purple-500' },
+            { label: 'การมีส่วนร่วม', value: score.engagement, max: 25, color: 'bg-amber-500' },
+        ];
+
+        const resetGame = () => {
+            setStep(0);
+            setCoalition([]);
+            setCabinet({});
+            setSelectedPolicies(new Set());
+            setChatHistory([{ sender: 'system', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ท่านต้องการสั่งการเรื่องอะไรครับ?' }]);
+            setInputMessage('');
+            setReshuffleCount(0);
+            setConfettiFired(false);
+            setScore(null);
+            setExpandedCategory(null);
+        };
+
+        return (
+            <div className="animate-fade-in">
+                {/* Score Ring */}
+                <div className="text-center mb-8">
+                    <div className="relative inline-block mb-4">
+                        <svg width="160" height="160" viewBox="0 0 160 160" className="score-ring">
+                            <circle cx="80" cy="80" r="70" fill="none" stroke="#e2e8f0" strokeWidth="10" />
+                            <circle
+                                cx="80" cy="80" r="70" fill="none"
+                                stroke="url(#scoreGrad)" strokeWidth="10"
+                                strokeLinecap="round"
+                                strokeDasharray={`${(score.total / 100) * 440} 440`}
+                                transform="rotate(-90 80 80)"
+                                className="animate-score-fill"
+                            />
+                            <defs>
+                                <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                    <stop offset="0%" stopColor="#3b82f6" />
+                                    <stop offset="100%" stopColor="#8b5cf6" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <div className="absolute inset-0 flex flex-col items-center justify-center">
+                            <span className="text-4xl font-extrabold text-slate-800">{score.total}</span>
+                            <span className="text-xs text-slate-400">/ 100</span>
+                        </div>
+                    </div>
+
+                    {/* Grade */}
+                    <div className="animate-grade-pop">
+                        <span className={`inline-block text-5xl font-black bg-gradient-to-br ${gradeColors[score.grade]} bg-clip-text text-transparent`}>
+                            {score.grade}
+                        </span>
+                        <p className="text-lg font-bold text-slate-600 mt-1">{gradeEmoji[score.grade]}</p>
+                    </div>
+                </div>
+
+                {/* Score Breakdown */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
+                    <h3 className="font-bold text-slate-800 mb-4">รายละเอียดคะแนน</h3>
+                    <div className="space-y-3">
+                        {scoreCategories.map(cat => (
+                            <div key={cat.label}>
+                                <div className="flex justify-between text-sm mb-1">
+                                    <span className="text-slate-600">{cat.label}</span>
+                                    <span className="font-bold text-slate-800">{cat.value}/{cat.max}</span>
+                                </div>
+                                <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full rounded-full ${cat.color} transition-all duration-1000`}
+                                        style={{ width: `${(cat.value / cat.max) * 100}%` }}
+                                    />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Government Summary */}
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 mb-6">
+                    <h3 className="font-bold text-slate-800 mb-4">สรุปรัฐบาลของคุณ</h3>
+                    <div className="space-y-3 text-sm">
+                        <div className="flex gap-2">
+                            <span className="text-slate-500 w-20">นายก:</span>
+                            <span className="font-bold">{pmParty?.name}</span>
+                        </div>
+                        <div className="flex gap-2">
+                            <span className="text-slate-500 w-20">ร่วมรัฐบาล:</span>
+                            <div className="flex flex-wrap gap-1">
+                                {coalitionParties.map(p => (
+                                    <span key={p.id} className={`px-2 py-0.5 rounded text-white text-xs ${p.color}`}>{p.name}</span>
+                                ))}
+                            </div>
+                        </div>
+                        <div className="flex gap-2">
+                            <span className="text-slate-500 w-20">ที่นั่ง:</span>
+                            <span className="font-bold">{totalCoalitionSeats} / {TOTAL_SEATS}</span>
+                        </div>
+                        <div className="flex gap-2">
+                            <span className="text-slate-500 w-20">นโยบาย:</span>
+                            <span className="font-bold">{selectedPolicies.size} นโยบาย</span>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Aggregate Stats (if available) */}
+                {aggregateStats && aggregateStats.total_games > 0 && (
+                    <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6">
+                        <h3 className="font-bold text-slate-800 mb-3">เปรียบเทียบกับผู้เล่นอื่น</h3>
+                        <div className="grid grid-cols-2 gap-3 text-center">
+                            <div>
+                                <div className="text-2xl font-bold text-blue-600">{aggregateStats.total_games}</div>
+                                <div className="text-xs text-slate-500">ผู้เล่นทั้งหมด</div>
+                            </div>
+                            <div>
+                                <div className="text-2xl font-bold text-emerald-600">{aggregateStats.avg_score || '-'}</div>
+                                <div className="text-xs text-slate-500">คะแนนเฉลี่ย</div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={resetGame}
+                        className="flex-1 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
+                    >
+                        <RotateCcw size={18} /> เล่นใหม่
+                    </button>
+                </div>
+            </div>
+        );
+    };
 
     // --- MAIN RENDER ---
     return (
         <div className={`min-h-screen font-sans ${step === 0 ? '' : 'bg-slate-50 p-4 md:p-8'}`}>
-            {step === 0 && renderIntro()}
+            {step === 0 && !showResults && renderIntro()}
+            {step === 0 && showResults && (
+                <div className="max-w-xl mx-auto py-8 px-4">
+                    {renderAggregateStats()}
+                </div>
+            )}
 
             {step >= 1 && (
                 <div className="max-w-4xl mx-auto">
@@ -802,6 +1267,7 @@ export default function PMSimulator() {
                     {step === 2 && renderPolicySelector()}
                     {step === 3 && renderCabinetMaker()}
                     {step === 4 && renderGovChat()}
+                    {step === 5 && renderResults()}
                 </div>
             )}
         </div>

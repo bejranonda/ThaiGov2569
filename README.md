@@ -13,7 +13,7 @@ This game is **Part 2** of the Thai Election 2569 series:
 | Game | Phase | Description |
 |------|-------|-------------|
 | [**Sim-Thailand 2569**](https://thalay.eu/sim2569) | Before Election | Choose policies across 6 urgent issues and discover which of 18 parties matches your values |
-| **Sim-Government 2569** (this project) | After Election | Form a coalition government, select policies, appoint ministers, and govern the country |
+| **Sim-Government 2569** (this project) | After Election | Form a coalition government, select policies, appoint ministers, govern the country, and see your results |
 
 **Narrative connection:** Sim-Thailand helps voters explore party policies before casting their vote. Once the election is over, Sim-Government picks up the story -- now it's time to form a government and put those policies into action.
 
@@ -21,27 +21,54 @@ This game is **Part 2** of the Thai Election 2569 series:
 
 | Feature | Description |
 |---------|-------------|
-| **Introduction Screen** | Animated intro page with game flow preview, sequel connection to Sim-Thailand, and educational disclaimer |
-| **Step Progress Indicator** | Visual 4-step tracker showing completion status across all game phases |
-| **Coalition Building** | Form a government from 500 MPs across 10 political parties with party-colored selection feedback |
-| **Policy Selection** | Browse 132 real policies with search, category filters with counts, and party-colored accent borders |
-| **Cabinet Allocation** | Assign 8 ministries to coalition parties with quick actions (Auto-assign, PM party, Clear all) |
-| **AI-Powered Political Chat** | Chat with your government! PM and Opposition Leader respond using Cloudflare Workers AI with authentic Thai political personas |
-| **Data Persistence** | Simulation results saved to Cloudflare D1 Database |
+| **Introduction Screen** | Animated intro with game flow preview, sequel badge, election reference links, and public stats view |
+| **5-Step Progress Indicator** | Clickable visual tracker with backward navigation, reshuffle counter for cabinet |
+| **Coalition Building** | Form a government from 500 MPs across 10 parties with party-colored selection feedback |
+| **Policy Selection** | Budget system (max 10 policies), accordion categories, sticky header, search with counts |
+| **Cabinet Allocation** | Assign 8 ministries, quick actions (Auto-assign, PM party, Clear), 2 reshuffle limit |
+| **AI-Powered Political Chat** | Chat with your government! PM and Opposition respond using Cloudflare Workers AI |
+| **Party-Themed Confetti** | Celebration moment when entering government with PM party colors |
+| **Results & Scoring** | 100-point score across 4 categories, letter grade (A-F), government summary |
+| **Aggregate Stats** | Public leaderboards showing PM distribution, grade distribution, averages |
+| **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
 
-## What's New in v0.2.0
+## What's New in v0.3.0
 
-- **Introduction Screen**: Full-screen animated intro with game narrative, sequel badge linking to Sim-Thailand, game flow preview, and educational disclaimer
-- **Series Connection**: Explicit link to Sim-Thailand 2569 as the predecessor game in the election series
-- **Step Progress Indicator**: 4-dot visual progress bar showing completed/active/upcoming steps
-- **Party-Colored Selections**: Coalition parties show selection feedback in their own party color (not generic blue)
-- **Enhanced Card Interactions**: Hover lift, click pulse, animated checkmarks (check-pop), and shimmer effects on selected cards
-- **Policy Category Counts**: Category filter pills now show the number of available policies per category
-- **Policy Reference Sources**: Each policy card shows its reference source (e.g., "Nation Debate", "White Paper")
-- **Cabinet Color Feedback**: Ministry icons change to the assigned party's color
-- **Chat Animations**: Messages slide in from left/right with smooth entrance animations
-- **Anuphan Thai Font**: Professional Thai font throughout the app
-- **Glassmorphism & Polish**: Frosted footer bar, gradient backgrounds, glow effects
+**Major UX Overhaul - Complete Feature Release**
+
+### Navigation & Flow
+- **Clickable Step Indicator**: Click any completed step to navigate backward, with hover ring effects
+- **Cabinet Reshuffle Limit**: Maximum 2 reshuffles with visual dot counter
+- **Election Reference Links**: Added pre/post election data source links on intro
+- **Public Stats View**: "ดูผลโหวตและการตั้งรัฐบาล" button for aggregate stats without playing
+
+### Policy Selection Overhaul
+- **Budget System**: Max 10 policies with visual dot meter in sticky header
+- **Accordion Categories**: Collapsible category sections with "เลือกแล้ว X" badges
+- **Sticky Header**: Always-visible navigation, budget counter, and next button
+- **Budget Exhaustion**: Disabled cards + amber notice when budget depleted
+- **Search Shows Flat Results**: When searching, bypass accordion for filtered grid
+
+### Celebration & Scoring
+- **Party-Themed Confetti**: Fires on government entry with PM party colors (code-split, ~11KB)
+- **Results Screen (Step 5)**: Animated SVG score ring, letter grade with pop animation
+- **4-Category Scoring**: Coalition stability (25), Policy diversity (25), Cabinet expertise (25), Engagement (25)
+- **Grade Distribution**: A (90+), B (75+), C (60+), D (40+), F (<40)
+- **Government Summary**: PM, coalition parties, seat count, policies chosen
+- **Aggregate Comparison**: See how you compare with other players
+
+### Backend & Data
+- **game_sessions Table**: Full session storage with all scoring fields
+- **Expanded Stats API**: POST saves complete session, GET returns aggregate stats
+- **PM Distribution Chart**: See which parties players choose as PM
+- **Grade Distribution**: Visual breakdown of player grades
+
+### Polish & Animations
+- **Score Ring Animation**: Smooth stroke-dasharray transition
+- **Grade Pop Animation**: Scale + rotate bounce on grade reveal
+- **Accordion Animation**: Smooth open/close with max-height
+- **Budget Dot Pulse**: Visual feedback when budget exhausted
+- **Footer Logos**: thalay.eu logo image + Facebook SVG icon
 
 ## Tech Stack
 
@@ -50,6 +77,7 @@ This game is **Part 2** of the Thai Election 2569 series:
 - **Backend:** Cloudflare Pages Functions
 - **AI:** Cloudflare Workers AI (Llama 3.1-8B) + OpenRouter backup (Llama 3.3-70B)
 - **Database:** Cloudflare D1
+- **Effects:** canvas-confetti (code-split)
 - **Icons:** Lucide React
 - **Font:** Anuphan (Google Fonts)
 
@@ -151,20 +179,21 @@ The app is currently hosted on Autobahn Bot platform. The frontend uses Cloudfla
 ```
 SimGov2569/
 ├── src/
-│   ├── App.jsx          # Main React application (intro, steps 1-4, all UI)
+│   ├── App.jsx          # Main React application (intro, steps 1-5, all UI)
 │   ├── main.jsx         # React entry point
 │   ├── index.css        # Global styles, animations, tooltips
 │   ├── data.js          # Party and ministry data (10 parties, 8 ministries)
 │   └── policies.js      # 132 policy definitions with references
 ├── functions/
 │   └── api/
-│       └── chat.js      # AI Chat endpoint (PM + Opposition dual responses)
+│       ├── chat.js      # AI Chat endpoint (PM + Opposition dual responses)
+│       └── stats.js     # Session save + aggregate stats endpoint
 ├── docs/
 │   └── CONCEPT.md       # Project concept and design philosophy
 ├── Campaign2569/        # Campaign-related content
 ├── ThaiSim2569/         # Sim-Thailand 2569 (predecessor game)
 ├── dist/                # Build output (generated)
-├── schema.sql           # Database schema
+├── schema.sql           # Database schema (simulation_results + game_sessions)
 ├── wrangler.toml        # Cloudflare configuration
 ├── vite.config.js       # Vite configuration
 ├── tailwind.config.js   # Tailwind CSS configuration (Anuphan font, animations)
@@ -184,20 +213,37 @@ SimGov2569/
 
 ```
 Intro Screen (step 0)
-  │  "เริ่มจัดตั้งรัฐบาล"
+  │  "เริ่มจัดตั้งรัฐบาล" or "ดูผลโหวตและการตั้งรัฐบาล"
   ▼
 Step 1: Coalition Building
   │  Select parties to reach 250+ seats
   ▼
 Step 2: Policy Selection
-  │  Choose 3+ policies from coalition parties
+  │  Choose 3-10 policies from coalition parties (budget system, accordion)
   ▼
 Step 3: Cabinet Allocation
-  │  Assign parties to 8 ministries + PM
+  │  Assign parties to 8 ministries + PM (2 reshuffles max)
   ▼
 Step 4: Government Chat
-     Chat with AI-powered PM and Opposition
+  │  Chat with AI-powered PM and Opposition (confetti celebration!)
+  │  "จบบริหาร - ดูผลลัพธ์"
+  ▼
+Step 5: Results & Scoring
+     Score breakdown (100pts), grade A-F, government summary, aggregate comparison
 ```
+
+## Scoring System
+
+The game evaluates your government across 4 categories (100 points total):
+
+| Category | Max Points | Formula |
+|----------|-----------|---------|
+| Coalition Stability | 25 | Margin above 250 seats (capped at 100 extra) |
+| Policy Diversity | 25 | Unique categories covered / 10 total categories |
+| Cabinet Expertise | 25 | Party has relevant policy expertise / 8 ministries |
+| Engagement | 25 | Chat messages sent (capped at 10) |
+
+**Grade Scale:** A (90+), B (75+), C (60+), D (40+), F (<40)
 
 ## AI Chat System
 
@@ -213,7 +259,7 @@ The chat system uses Cloudflare Workers AI with automatic fallback to OpenRouter
 - **Free Tier**: Cloudflare (10,000 Neurons/day) + OpenRouter (free tier)
 - **Automatic Fallback**: Switches to OpenRouter when Cloudflare limits are reached
 - **Dual Responses**: PM answers first, then Opposition Leader adds their perspective
-- **Context Aware**: Knows coalition partners, seat counts, and government policies
+- **Context Aware**: Knows coalition partners, seat counts, government policies
 - **Party Personas**: Each party has unique speaking style and signature phrases
 
 ### Party Personas
@@ -230,11 +276,33 @@ The chat system uses Cloudflare Workers AI with automatic fallback to OpenRouter
 ## Database Schema
 
 ```sql
+-- Legacy table (backward compat)
 CREATE TABLE simulation_results (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  coalition TEXT,      -- JSON string of coalition party IDs
-  cabinet TEXT,        -- JSON string of ministry assignments
-  selected_policies TEXT, -- JSON string of selected policy IDs
+  coalition TEXT,
+  cabinet TEXT,
+  selected_policies TEXT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- New full session storage (v0.3.0+)
+CREATE TABLE game_sessions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id TEXT NOT NULL,
+  pm_party TEXT NOT NULL,
+  coalition TEXT NOT NULL,
+  coalition_seats INTEGER NOT NULL,
+  selected_policies TEXT NOT NULL,
+  policy_count INTEGER NOT NULL,
+  cabinet TEXT NOT NULL,
+  chat_questions TEXT,
+  chat_count INTEGER DEFAULT 0,
+  score_total INTEGER,
+  score_coalition INTEGER,
+  score_diversity INTEGER,
+  score_cabinet INTEGER,
+  score_engagement INTEGER,
+  grade TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 ```
@@ -255,6 +323,7 @@ This project is open source and available under the MIT License.
 - Backend by [Cloudflare Pages Functions](https://pages.cloudflare.com/)
 - AI by [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai)
 - Backup AI by [OpenRouter](https://openrouter.ai/)
+- Confetti by [canvas-confetti](https://github.com/catdad/canvas-confetti)
 - Primary Model: Meta Llama 3.1 8B Instruct
 - Backup Model: Meta Llama 3.3 70B Instruct
 - Predecessor: [Sim-Thailand 2569](https://thalay.eu/sim2569) by [thalay.eu](https://thalay.eu/)

@@ -1,7 +1,7 @@
 {
     "name": "thaigov2569",
     "private": true,
-    "version": "0.2.0",
+    "version": "0.3.0",
     "type": "module",
     "scripts": {
         "dev": "vite",
@@ -10,6 +10,7 @@
         "deploy": "npm run build && wrangler pages deploy dist"
     },
     "dependencies": {
+        "canvas-confetti": "^1.9.4",
         "lucide-react": "^0.344.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0"
