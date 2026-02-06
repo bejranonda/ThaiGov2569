@@ -27,8 +27,43 @@ import {
 import { PARTIES, MINISTRIES, TOTAL_SEATS, MAJORITY_THRESHOLD } from './data';
 import { POLICIES } from './policies';
 
-// IDs of original policies that are now grouped (v0.5.0)
-const GROUPED_POLICY_IDS = [106, 408, 213, 306, 704];
+// IDs of original policies that are now grouped (v0.6.0)
+const GROUPED_POLICY_IDS = [
+    // 901: EV transport (PTP, BJT, PP)
+    106, 408, 213,
+    // 902: Free education (UTN, TST, BJT, PP)
+    306, 704, 405, 209,
+    // 903: Unlock schools (PP, UTN)
+    204, 307,
+    // 904: Bilingual schools (PTP, PPRP)
+    109, 1704,
+    // 905: Learn to earn (PTP, DEM)
+    108, 506,
+    // 906: Energy cost (UTN, PCC, TST, SET, PPRP)
+    303, 602, 710, 1802, 1703,
+    // 907: Farmer income (PTP, DEM)
+    102, 501,
+    // 908: SME fund (TST, DEM, SET)
+    703, 510, 1803,
+    // 909: Village fund (DEM, PPRP)
+    504, 1706,
+    // 910: Gender equality (PTP, PP, DEM, TST)
+    107, 207, 505, 705,
+    // 911: Elderly pension (TST, PPRP)
+    701, 1702,
+    // 912: Anti-corruption (UTN, DEM, SRT, PPRP)
+    301, 502, 1902, 1709,
+    // 913: Deregulation (UTN, TST)
+    305, 702,
+    // 914: Military reform (PP, SRT)
+    206, 1901,
+    // 915: Clean air (PTP, DEM)
+    111, 509,
+    // 916: Net zero / carbon (PTP, PP, OTH)
+    112, 212, 2007,
+    // 917: Solar (UTN, BJT)
+    309, 402,
+];
 
 // Party-colored selection styles
 const PARTY_STYLES = {
@@ -215,7 +250,8 @@ export default function PMSimulator() {
         const engagementScore = Math.min(25, userMessages > 0 ? 25 : 0);
 
         const total = coalitionScore + diversityScore + cabinetScore + engagementScore;
-        return { total, coalition: coalitionScore, diversity: diversityScore, cabinet: cabinetScore, engagement: engagementScore };
+        const grade = total >= 90 ? 'A+' : total >= 80 ? 'A' : total >= 70 ? 'B+' : total >= 60 ? 'B' : total >= 50 ? 'C' : total >= 40 ? 'D' : 'F';
+        return { total, coalition: coalitionScore, diversity: diversityScore, cabinet: cabinetScore, engagement: engagementScore, grade };
     };
 
     // Dynamic commentary
@@ -252,7 +288,7 @@ export default function PMSimulator() {
                     chat_count: chatLog.filter(m => m.sender === 'user').length,
                     score_total: scoreData.total, score_coalition: scoreData.coalition,
                     score_diversity: scoreData.diversity, score_cabinet: scoreData.cabinet,
-                    score_engagement: scoreData.engagement,
+                    score_engagement: scoreData.engagement, grade: scoreData.grade,
                 }),
             });
         } catch (err) { console.error('Failed to save session:', err); }
@@ -721,7 +757,7 @@ export default function PMSimulator() {
                     <p className="text-xs text-slate-500 mt-1">{policiesInCat.length} นโยบาย | เลือกแล้ว {selectedInCat} ในหมวดนี้</p>
                 </div>
 
-                {/* Policy cards - no party names shown */}
+                {/* Policy cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     {policiesInCat.map(p => {
                         const isSelected = selectedPolicies.has(p.id);
@@ -873,10 +909,10 @@ export default function PMSimulator() {
                             <RotateCcw size={18} /> ปรับ ครม. (เหลือ {2 - reshuffleCount} ครั้ง)
                         </button>
                         <button
-                            onClick={() => {
+                            onClick={async () => {
                                 const scoreData = calculateScore();
                                 setScore(scoreData);
-                                saveSession(scoreData);
+                                await saveSession(scoreData);
                                 fetchAggregateStats();
                                 setStep(5);
                             }}

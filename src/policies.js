@@ -120,25 +120,114 @@ export const POLICIES = [
     { id: 2007, party: "OTH", cat: "environment", title: "Carbon Credit Hub", desc: "ผลักดันไทยเป็นศูนย์กลางซื้อขายคาร์บอนเครดิตแห่งอาเซียน", ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: false },
     { id: 2008, party: "OTH", cat: "social", title: "เมืองอารยสถาปัตย์", desc: "ปรับปรุงเมืองให้รองรับผู้สูงอายุและคนพิการ (Universal Design)", ref: "นโยบายพรรค", url: "#", verify: false },
 
-    // --- Grouped Policies (v0.5.0) ---
+    // --- Grouped Policies (v0.6.0) ---
+    // Transport
     {
-        id: 901,
-        supporters: ["PTP", "BJT", "PP"],
-        cat: "environment",
+        id: 901, supporters: ["PTP", "BJT", "PP"], cat: "environment",
         title: "รถไฟฟ้าและรถเมล์ไฟฟ้าทั่วประเทศ",
         desc: "รถไฟฟ้า 20 บาทตลอดสาย, รถเมล์ไฟฟ้าทุกจังหวัด ลดค่าครองชีพคนเมืองและมลพิษ",
-        ref: "นโยบายขนส่ง",
-        url: "#",
-        verify: true
+        ref: "นโยบายขนส่ง", url: "#", verify: true
+    },
+    // Education
+    {
+        id: 902, supporters: ["UTN", "TST", "BJT", "PP"], cat: "education",
+        title: "เรียนฟรีตลอดชีวิต",
+        desc: "เรียนฟรีถึง ป.เอก จบ ป.ตรี อายุ 18 เรียนฟรีจริงไม่มีค่าใช้จ่ายแอบแฝง อาหารกลางวันฟรี",
+        ref: "นโยบายการศึกษา", url: "#", verify: true
     },
     {
-        id: 902,
-        supporters: ["UTN", "TST"],
-        cat: "education",
-        title: "การศึกษาฟรีถึงระดับอุดมศึกษา",
-        desc: "เรียนฟรีถึง ป.เอก, จบ ป.ตรี อายุ 18, ลดภาระครอบครัวและสร้างโอกาสการศึกษา",
-        ref: "นโยบายการศึกษา",
-        url: "#",
-        verify: true
+        id: 903, supporters: ["PP", "UTN"], cat: "education",
+        title: "ปลดล็อกโรงเรียน คืนครูให้นักเรียน",
+        desc: "ลดภาระงานเอกสารครู ยกเลิกพิธีกรรมที่ไม่จำเป็น โรงเรียนมีอิสระออกแบบการเรียนรู้",
+        ref: "นโยบายการศึกษา", url: "#", verify: true
+    },
+    {
+        id: 904, supporters: ["PTP", "PPRP"], cat: "education",
+        title: "โรงเรียน 2 ภาษาทุกท้องถิ่น",
+        desc: "สอนภาษาอังกฤษและจีนตั้งแต่ ป.1 เรียนกับเจ้าของภาษา สัปดาห์ละ 2 คาบ",
+        ref: "นโยบายการศึกษา", url: "#", verify: true
+    },
+    {
+        id: 905, supporters: ["PTP", "DEM"], cat: "education",
+        title: "เรียนจบมีงานทำ",
+        desc: "ดึงเอกชนร่วมกำหนดหลักสูตร เรียนรู้มีรายได้ เน้นทักษะ AI และภาษาอังกฤษ",
+        ref: "นโยบายการศึกษา", url: "#", verify: true
+    },
+    // Economy
+    {
+        id: 906, supporters: ["UTN", "PCC", "TST", "SET", "PPRP"], cat: "economy",
+        title: "ลดค่าพลังงานทันที",
+        desc: "รื้อโครงสร้างราคาพลังงาน ลดค่าไฟไม่เกิน 3.50 บาท ลดราคาน้ำมัน ลดต้นทุนค่าครองชีพ",
+        ref: "นโยบายพลังงาน", url: "#", verify: true
+    },
+    {
+        id: 907, supporters: ["PTP", "DEM"], cat: "economy",
+        title: "ประกันรายได้เกษตรกร",
+        desc: "ประกันกำไรเกษตรกร 30% และจ่ายส่วนต่างราคาพืชผล 5 ชนิดตรงเข้าบัญชี",
+        ref: "นโยบายเกษตร", url: "#", verify: true
+    },
+    {
+        id: 908, supporters: ["TST", "DEM", "SET"], cat: "economy",
+        title: "กองทุน SME ดอกเบี้ยต่ำ",
+        desc: "สนับสนุน SME ด้วยสินเชื่อดอกเบี้ยต่ำ แต้มต่อจัดซื้อภาครัฐ ลดกฎระเบียบ",
+        ref: "นโยบายเศรษฐกิจ", url: "#", verify: true
+    },
+    {
+        id: 909, supporters: ["DEM", "PPRP"], cat: "economy",
+        title: "กองทุนหมู่บ้านและชุมชน",
+        desc: "จัดตั้งธนาคารหมู่บ้านและอัดฉีดเม็ดเงินลงกองทุนชุมชนเป็นแหล่งทุนหมุนเวียน",
+        ref: "นโยบายเศรษฐกิจ", url: "#", verify: true
+    },
+    // Social
+    {
+        id: 910, supporters: ["PTP", "PP", "DEM", "TST"], cat: "social",
+        title: "สิทธิความเท่าเทียมทางเพศ",
+        desc: "สมรสเท่าเทียม รับรองอัตลักษณ์ทางเพศ ขจัดเลือกปฏิบัติ จัดสรรงบคำนึงถึงมิติทางเพศ",
+        ref: "เวที Pride Vote", url: "#", verify: true
+    },
+    {
+        id: 911, supporters: ["TST", "PPRP"], cat: "social",
+        title: "บำนาญและเบี้ยผู้สูงอายุ",
+        desc: "ให้ผู้สูงอายุเดือนละ 3,000 บาท พร้อมระบบขั้นบันไดตามอายุ",
+        ref: "นโยบายสังคม", url: "#", verify: true
+    },
+    // Politics
+    {
+        id: 912, supporters: ["UTN", "DEM", "SRT", "PPRP"], cat: "politics",
+        title: "ปราบทุจริตเด็ดขาด",
+        desc: "เพิ่มโทษทุจริต เปิดเผยข้อมูลจัดซื้อจัดจ้าง ยึดทรัพย์ถาวร ปราบมาเฟียข้ามชาติ",
+        ref: "นโยบายปราบโกง", url: "#", verify: true
+    },
+    {
+        id: 913, supporters: ["UTN", "TST"], cat: "politics",
+        title: "แก้กฎหมายล้าหลัง",
+        desc: "สังคายนากฎหมายที่เป็นอุปสรรคกว่า 1,000 ฉบับ พักบังคับใช้ใบอนุญาตที่ไม่จำเป็น",
+        ref: "นโยบายปฏิรูป", url: "#", verify: true
+    },
+    // Security
+    {
+        id: 914, supporters: ["PP", "SRT"], cat: "security",
+        title: "ปฏิรูปกองทัพ ยกเลิกเกณฑ์ทหาร",
+        desc: "เปลี่ยนเป็นระบบสมัครใจ ลดจำนวนนายพล ลดงบกลาโหม สร้างทหารอาชีพ",
+        ref: "นโยบายกองทัพ", url: "#", verify: true
+    },
+    // Environment
+    {
+        id: 915, supporters: ["PTP", "DEM"], cat: "environment",
+        title: "พ.ร.บ.อากาศสะอาด",
+        desc: "ผลักดันกฎหมายอากาศสะอาดฉบับบูรณาการ บังคับใช้มาตรฐานมลพิษ คืนสิทธิในการหายใจ",
+        ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: true
+    },
+    {
+        id: 916, supporters: ["PTP", "PP", "OTH"], cat: "environment",
+        title: "Net Zero และ Carbon Credit",
+        desc: "มุ่งสู่ความเป็นกลางทางคาร์บอน กำหนดเพดานการปล่อยก๊าซ ผลักดันศูนย์ซื้อขาย Carbon Credit",
+        ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: true
+    },
+    {
+        id: 917, supporters: ["UTN", "BJT"], cat: "environment",
+        title: "โซลาร์เซลล์เสรี",
+        desc: "ปลดล็อกให้ประชาชนผลิตไฟฟ้าขายเข้าระบบได้จริง ติดตั้งโซล่าเซลล์ทุกหลังคาเรือน",
+        ref: "นโยบายพลังงาน", url: "#", verify: true
     },
 ];
