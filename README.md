@@ -24,8 +24,8 @@ This game is **Part 2** of the Thai Election 2569 series:
 | **Introduction Screen** | Developer credits, clean gradient background, poll reference links (NIDA/Dusit), public stats view |
 | **5-Step Progress Indicator** | Clickable visual tracker with backward navigation, reshuffle counter for cabinet |
 | **Coalition Building** | Form government from 500 MPs across 11 parties, sorted by seats descending, cleaner party cards |
-| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, grouped similar policies |
-| **Cabinet Allocation** | Assign 8 ministries, quick actions (Auto-assign, PM party, Clear), 2 reshuffle limit |
+| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, 17 grouped similar policies |
+| **Cabinet Allocation** | Assign 14 ministries + PM, quick actions (Auto-assign, PM party, Clear), 2 reshuffle limit |
 | **AI-Powered Political Chat** | 1 question limit, sequential streaming (PM → Opposition), government spokesperson branding |
 | **Emoji Confetti** | Party-specific emoji symbols (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) celebration |
 | **Results & Scoring** | 100-point score across 4 categories, dynamic commentary |
@@ -33,37 +33,49 @@ This game is **Part 2** of the Thai Election 2569 series:
 | **Aggregate Stats** | Public leaderboards showing PM distribution, score averages |
 | **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
 
+## What's New in v0.6.0
+
+**Policy Grouping + More Ministries + Stats Fix**
+
+### Grouped Similar Policies (17 Groups)
+- **15 New Groups**: Merged similar policies across parties to reduce choice paralysis
+  - Education: เรียนฟรีตลอดชีวิต, ปลดล็อกโรงเรียน, โรงเรียน 2 ภาษา, เรียนจบมีงานทำ
+  - Economy: ลดค่าพลังงานทันที, ประกันรายได้เกษตรกร, กองทุน SME, กองทุนหมู่บ้าน
+  - Social: สิทธิความเท่าเทียมทางเพศ, บำนาญผู้สูงอายุ
+  - Politics: ปราบทุจริตเด็ดขาด, แก้กฎหมายล้าหลัง
+  - Security: ปฏิรูปกองทัพ ยกเลิกเกณฑ์ทหาร
+  - Environment: พ.ร.บ.อากาศสะอาด, Net Zero/Carbon Credit, โซลาร์เซลล์เสรี
+- **Neutral Selection**: No party names shown on policy cards to reduce bias
+- **Original Policies Kept**: All original data maintained for backward compatibility
+
+### 6 New Ministries (14 Total)
+- กระทรวงเกษตรฯ, กระทรวงยุติธรรม, กระทรวงการต่างประเทศ
+- กระทรวงทรัพยากรฯ/สิ่งแวดล้อม, กระทรวงดิจิทัลฯ, กระทรวงพาณิชย์
+- **Party Expertise Updated**: All 11 parties have relevant policy keys for new ministries
+
+### Stats & Scoring Fix
+- **Grade Computation**: Added A+ to F grading based on total score
+- **Grade Saved**: Grade now included in session save to database
+- **Race Condition Fix**: Stats fetch waits for session save to complete
+
 ## What's New in v0.5.0
 
 **UX Improvements - Cleaner Interface**
 
-### Intro Page Cleanup (Phase 1)
-- **Removed Floating Emojis**: Eliminated 6 animated emoji decorations for cleaner, more modern look
-- **Gradient Background Only**: Simplified intro screen to focus on content and navigation
+### Intro Page Cleanup
+- Removed floating emojis for cleaner, more modern look
+- Simplified intro screen to focus on content and navigation
 
-### Chat Room Enhancements (Phase 2)
-- **"โฆษกรัฐบาล" Branding**: Renamed system sender to "Government Spokesperson" for more authentic feel
-- **Sequential Streaming**: PM response streams completely first, then Opposition appears (no more simultaneous streaming)
-- **Better Flow**: Users see full PM response before Opposition perspective
+### Chat Room Enhancements
+- "โฆษกรัฐบาล" branding for more authentic feel
+- Sequential streaming: PM response first, then Opposition
 
-### Coalition Card Redesign (Phase 3)
-- **Removed Emoji Circles**: Eliminated emoji badges from party cards for better readability
-- **Larger Typography**: Increased party name font size (text-base) and seats display (text-sm)
-- **Cleaner Visuals**: Party colors now only appear in selection borders/glow effects
+### Coalition Card Redesign
+- Removed emoji badges, larger typography, cleaner visuals
 
-### Policy Selection Refinement (Phase 4A)
-- **Removed Source References**: Eliminated `p.ref` display from policy cards for cleaner UI
-- **Focus on Content**: Policy cards now show only title and description
-
-### Grouped Similar Policies (Phase 4B)
-- **2 Grouped Policies**: Merged most obvious duplicate policies to reduce choice paralysis
-  - Electric Transit (รถไฟฟ้าและรถเมล์ไฟฟ้าทั่วประเทศ): PTP + BJT + PP
-  - Free University Education (การศึกษาฟรีถึงระดับอุดมศึกษา): UTN + TST
-- **Original Policies Kept**: Maintained backward compatibility with existing saves
-
-### Build Changes
-- **CSS Size Reduction**: Reduced to ~36.75 kB (removed ~2 kB of emoji animation CSS)
-- **Total Bundle**: ~210KB JS + ~36.75 KB CSS + 201KB html2canvas (lazy) + 11KB confetti (lazy)
+### Policy Selection Refinement
+- Removed source references from policy cards
+- 2 initial grouped policies (EV transport, free education)
 
 ## What's New in v0.4.0
 
@@ -235,8 +247,8 @@ SimGov2569/
 │   ├── App.jsx          # Main React application (intro, steps 1-5, all UI)
 │   ├── main.jsx         # React entry point
 │   ├── index.css        # Global styles, animations, tooltips, floating emojis
-│   ├── data.js          # Party and ministry data (11 parties, 8 ministries)
-│   └── policies.js      # 132 policy definitions with references
+│   ├── data.js          # Party and ministry data (11 parties, 14 ministries)
+│   └── policies.js      # 132 policy definitions + 17 grouped policies
 ├── functions/
 │   └── api/
 │       ├── chat.js      # AI Chat endpoint (PM + Opposition dual responses)
@@ -275,14 +287,14 @@ Step 2: Policy Selection
   │  Step through 6 categories, select policies (randomized, no party names)
   ▼
 Step 3: Cabinet Allocation
-  │  Assign parties to 8 ministries + PM (2 reshuffles max)
+  │  Assign parties to 14 ministries + PM (2 reshuffles max)
   ▼
 Step 4: Government Chat
   │  Chat with AI-powered PM and Opposition (confetti celebration!)
   │  "จบบริหาร - ดูผลลัพธ์"
   ▼
 Step 5: Results & Scoring
-     Score breakdown (100pts), grade A-F, government summary, aggregate comparison
+     Score breakdown (100pts), grade A+ to F, government summary, aggregate comparison
 ```
 
 ## Scoring System
@@ -293,7 +305,7 @@ The game evaluates your government across 4 categories (100 points total):
 |----------|-----------|---------|
 | เสถียรภาพรัฐบาล (Coalition Stability) | 25 | Margin above 250 seats (capped at 100 extra) |
 | นโยบายครอบคลุมทุกมิติ (Policy Diversity) | 25 | Unique categories covered / 6 total categories |
-| ครม. ตรงกับจุดแข็งพรรค (Cabinet Expertise) | 25 | Party has relevant policy expertise / 8 ministries |
+| ครม. ตรงกับจุดแข็งพรรค (Cabinet Expertise) | 25 | Party has relevant policy expertise / 14 ministries |
 | ถามคำถามสำคัญ (Engagement) | 25 | Binary: 25 if asked question, 0 if not |
 
 ## AI Chat System

@@ -4,7 +4,7 @@
 
 **Sim-Government: Thailand 2569** is an interactive political simulation game that lets players experience the full lifecycle of forming and running a Thai government. It is the second installment in the **"Thai Election 2569"** series, designed to engage citizens with the democratic process through gameplay.
 
-**Version:** 0.4.0
+**Version:** 0.6.0
 **Platform:** Web (React + Tailwind CSS)
 **Live:** https://simgov2569.autobahn.bot
 
@@ -62,7 +62,7 @@ The game progressively introduces complexity through its 5-step flow:
 
 1. **Coalition Building** -- Binary choice (include/exclude parties), simple arithmetic (reach 250 seats), parties sorted by seats descending
 2. **Policy Selection** -- Step-through 6 categories, randomized order, no party names shown, select as many policies as desired
-3. **Cabinet Allocation** -- Map parties to ministries, introducing institutional structure and expertise matching
+3. **Cabinet Allocation** -- Map parties to 14 ministries, introducing institutional structure and expertise matching
 4. **Government Chat** -- 1 question limit, streaming text responses, action buttons (reshuffle or confirm)
 5. **Results & Scoring** -- Quantified feedback across 4 renamed dimensions, dynamic commentary, screenshot sharing
 
@@ -74,7 +74,7 @@ Unlike v0.2.0 which was deliberately open-ended, v0.3.0 introduces a **scoring s
 
 - **เสถียรภาพรัฐบาล (25 pts)**: Rewards secure margins above the 250-seat threshold
 - **นโยบายครอบคลุมทุกมิติ (25 pts)**: Rewards breadth across 6 issue categories
-- **ครม. ตรงกับจุดแข็งพรรค (25 pts)**: Rewards matching ministers to parties with relevant policy platforms
+- **ครม. ตรงกับจุดแข็งพรรค (25 pts)**: Rewards matching ministers to parties with relevant policy platforms across 14 ministries
 - **ถามคำถามสำคัญ (25 pts)**: Binary score for asking a question to the government
 
 Dynamic commentary provides contextual feedback based on the score breakdown, rather than letter grades.
@@ -149,7 +149,7 @@ The 100-point scoring system balances multiple dimensions of governance quality:
 - **Lesson**: Narrow policy focus limits impact; breadth is valuable
 
 ### Cabinet Expertise (25 pts)
-- **Formula**: Party has relevant policy platform for assigned ministry / 8 ministries
+- **Formula**: Party has relevant policy platform for assigned ministry / 14 ministries
 - **Rationale**: Ministers with relevant policy backgrounds govern more effectively
 - **Lesson**: Personnel assignments should match expertise
 
@@ -243,6 +243,13 @@ All data is used for educational and simulation purposes only, as stated in the 
 - ✅ Screenshot sharing with html2canvas
 - ✅ AI prompt improvements (no fixed closing phrases)
 
+### Completed in v0.6.0
+- ✅ 17 grouped similar policies across parties (reduced choice paralysis)
+- ✅ 6 new ministries (14 total): Agriculture, Justice, Foreign Affairs, Environment, Digital, Commerce
+- ✅ Party expertise updated for all new ministries
+- ✅ Grade computation (A+ to F) saved to database
+- ✅ Stats save race condition fixed
+
 ### Potential Future Features
 - **Multiplayer Debate**: Let two players form competing coalitions and debate
 - **Historical Comparison**: Compare player's government with actual government formations after the real election
@@ -260,6 +267,8 @@ All data is used for educational and simulation purposes only, as stated in the 
 | 0.2.0 | Jan 2025 | Intro screen, step indicator, party colors, animations, Sim-Thailand connection |
 | 0.3.0 | Feb 2025 | Policy budget, accordion, cabinet reshuffle limit, confetti, scoring system, results screen, aggregate stats |
 | 0.4.0 | Feb 2026 | Data update (11 parties, 500 seats), policy step-through, emoji confetti, chat streaming, screenshot sharing, AI prompt improvements |
+| 0.5.0 | Feb 2026 | UX cleanup (remove emojis, sequential chat, cleaner cards), 2 initial grouped policies |
+| 0.6.0 | Feb 2026 | 17 grouped policies, 14 ministries (6 new), grade computation, stats fix |
 
 ---
 
