@@ -578,7 +578,7 @@ export default function PMSimulator() {
                         <span className="text-slate-300">|</span>
                         <a href="https://dusitpoll.dusit.ac.th/UPLOAD_FILES/POLL/2569/PS-2569-1769744270.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 underline">สวนดุสิตโพล (ธ.ค. 68)</a>
                     </div>
-                    <a href="https://github.com/bejranonda/ThaiGov2569" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-blue-500 transition-colors font-mono mt-2">v0.4.0</a>
+                    <a href="https://github.com/bejranonda/ThaiGov2569" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-blue-500 transition-colors font-mono mt-2">v0.5.0</a>
                 </div>
             </div>
         </div>
@@ -619,12 +619,12 @@ export default function PMSimulator() {
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                     {sortedParties.map(party => {
                         const isSelected = coalition.includes(party.id);
-                        const ps = PARTY_STYLES[party.id] || { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-600', glow: '' };
+                        const ps = PARTY_STYLES[party.id] || { border: 'border-blue-500', bg: 'bg-blue-50', text: 'text-blue-600', glow: '', accent: 'border-l-blue-500' };
                         return (
                             <button key={party.id} onClick={() => toggleParty(party.id)}
-                                className={`choice-card-enhanced p-4 rounded-xl border-2 relative overflow-hidden text-left ${isSelected ? `${ps.border} ${ps.bg} ${ps.glow} shadow-md animate-card-pulse` : 'border-slate-200 hover:border-slate-300 hover:shadow bg-white'}`}>
+                                className={`choice-card-enhanced p-4 rounded-xl border-2 relative overflow-hidden text-left transition-all ${isSelected ? `${ps.border} ${ps.bg} ${ps.glow} shadow-md` : `border-slate-200 hover:border-slate-300 hover:shadow bg-white border-l-4 ${ps.accent}`}`}>
                                 {isSelected && <div className={`absolute top-1.5 right-1.5 ${ps.text} animate-check-pop`}><CheckCircle size={18} /></div>}
-                                <div className="font-bold text-slate-800 text-base mb-1">{party.name}</div>
+                                <div className={`font-bold text-base mb-1 ${ps.text}`}>{party.name}</div>
                                 <div className="text-sm text-slate-500 mb-2">{party.seats} ที่นั่ง</div>
                                 <p className="text-[10px] text-slate-400 leading-tight line-clamp-2">{party.policies?.general || ''}</p>
                             </button>

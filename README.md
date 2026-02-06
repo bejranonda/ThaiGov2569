@@ -21,17 +21,49 @@ This game is **Part 2** of the Thai Election 2569 series:
 
 | Feature | Description |
 |---------|-------------|
-| **Introduction Screen** | Developer credits, 6 floating emojis, poll reference links (NIDA/Dusit), public stats view |
+| **Introduction Screen** | Developer credits, clean gradient background, poll reference links (NIDA/Dusit), public stats view |
 | **5-Step Progress Indicator** | Clickable visual tracker with backward navigation, reshuffle counter for cabinet |
-| **Coalition Building** | Form government from 500 MPs across 11 parties, sorted by seats descending |
-| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown |
+| **Coalition Building** | Form government from 500 MPs across 11 parties, sorted by seats descending, cleaner party cards |
+| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, grouped similar policies |
 | **Cabinet Allocation** | Assign 8 ministries, quick actions (Auto-assign, PM party, Clear), 2 reshuffle limit |
-| **AI-Powered Political Chat** | 1 question limit, streaming text effect, action buttons after response |
+| **AI-Powered Political Chat** | 1 question limit, sequential streaming (PM → Opposition), government spokesperson branding |
 | **Emoji Confetti** | Party-specific emoji symbols (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) celebration |
 | **Results & Scoring** | 100-point score across 4 categories, dynamic commentary |
 | **Screenshot/Share** | html2canvas integration with Web Share API and download fallback |
 | **Aggregate Stats** | Public leaderboards showing PM distribution, score averages |
 | **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
+
+## What's New in v0.5.0
+
+**UX Improvements - Cleaner Interface**
+
+### Intro Page Cleanup (Phase 1)
+- **Removed Floating Emojis**: Eliminated 6 animated emoji decorations for cleaner, more modern look
+- **Gradient Background Only**: Simplified intro screen to focus on content and navigation
+
+### Chat Room Enhancements (Phase 2)
+- **"โฆษกรัฐบาล" Branding**: Renamed system sender to "Government Spokesperson" for more authentic feel
+- **Sequential Streaming**: PM response streams completely first, then Opposition appears (no more simultaneous streaming)
+- **Better Flow**: Users see full PM response before Opposition perspective
+
+### Coalition Card Redesign (Phase 3)
+- **Removed Emoji Circles**: Eliminated emoji badges from party cards for better readability
+- **Larger Typography**: Increased party name font size (text-base) and seats display (text-sm)
+- **Cleaner Visuals**: Party colors now only appear in selection borders/glow effects
+
+### Policy Selection Refinement (Phase 4A)
+- **Removed Source References**: Eliminated `p.ref` display from policy cards for cleaner UI
+- **Focus on Content**: Policy cards now show only title and description
+
+### Grouped Similar Policies (Phase 4B)
+- **2 Grouped Policies**: Merged most obvious duplicate policies to reduce choice paralysis
+  - Electric Transit (รถไฟฟ้าและรถเมล์ไฟฟ้าทั่วประเทศ): PTP + BJT + PP
+  - Free University Education (การศึกษาฟรีถึงระดับอุดมศึกษา): UTN + TST
+- **Original Policies Kept**: Maintained backward compatibility with existing saves
+
+### Build Changes
+- **CSS Size Reduction**: Reduced to ~36.75 kB (removed ~2 kB of emoji animation CSS)
+- **Total Bundle**: ~210KB JS + ~36.75 KB CSS + 201KB html2canvas (lazy) + 11KB confetti (lazy)
 
 ## What's New in v0.4.0
 
