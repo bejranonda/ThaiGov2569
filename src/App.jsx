@@ -44,8 +44,8 @@ const PARTY_STYLES = {
 
 // Party emoji mapping for confetti
 const PARTY_EMOJI = {
-    PP: '🍊', PTP: '❤️', BJT: '🌿', DEM: '💧', PPRP: '⭐',
-    UTN: '🏛️', PCC: '🌙', SET: '💰', TST: '🌸', SRT: '🦅', OTH: '🎉',
+    PP: '🍊', PTP: '❤️', BJT: '🌿', DEM: '💧', PPRP: '💎',
+    UTN: '🛡️', PCC: '🦁', SET: '💰', TST: '🙆', SRT: '🦅', OTH: '🎉',
 };
 
 const STEP_LABELS = [
@@ -282,18 +282,71 @@ export default function PMSimulator() {
             const confetti = confettiModule.default;
             const pmPartyId = cabinet['PM'] || coalition[0];
 
-            // Get coalition party emojis
-            const coalitionEmojis = coalition.map(pId => PARTY_EMOJI[pId] || '🎉');
-            const shapes = coalitionEmojis.map(emoji =>
-                confetti.shapeFromText({ text: emoji, scalar: 2 })
-            );
+            // Get PM party emoji ONLY (No mixing)
+            const pmEmoji = PARTY_EMOJI[pmPartyId] || '🎉';
 
-            // Multiple bursts
-            confetti({ particleCount: 40, spread: 70, origin: { x: 0.1, y: 0.3 }, shapes, scalar: 2, ticks: 200 });
-            confetti({ particleCount: 40, spread: 70, origin: { x: 0.9, y: 0.3 }, shapes, scalar: 2, ticks: 200 });
-            setTimeout(() => {
-                confetti({ particleCount: 30, spread: 100, origin: { x: 0.5, y: 0.2 }, shapes, scalar: 2, ticks: 150 });
-            }, 500);
+            // Create shape from emoji
+            const pmShape = confetti.shapeFromText({ text: pmEmoji, scalar: 4 });
+
+            // Grand opening burst
+            const duration = 3000;
+            const end = Date.now() + duration;
+
+            // 1. Center burst (The "Grand" start)
+            confetti({
+                particleCount: 50,
+                spread: 100,
+                origin: { y: 0.4 },
+                shapes: [pmShape],
+                scalar: 3,
+                drift: 0,
+                ticks: 300
+            });
+
+            // 2. Side cannons (Shower effect)
+            (function frame() {
+                const timeLeft = end - Date.now();
+                if (timeLeft <= 0) return;
+
+                confetti({
+                    particleCount: 3,
+                    angle: 60,
+                    spread: 45,
+                    origin: { x: 0 },
+                    shapes: [pmShape],
+                    scalar: 2.5
+                });
+                confetti({
+                    particleCount: 3,
+                    angle: 120,
+                    spread: 45,
+                    origin: { x: 1 },
+                    shapes: [pmShape],
+                    scalar: 2.5
+                });
+
+                requestAnimationFrame(frame);
+            }());
+
+            // 3. Random rain from top
+            const rainInterval = setInterval(() => {
+                const timeLeft = end - Date.now();
+                if (timeLeft <= 0) {
+                    clearInterval(rainInterval);
+                    return;
+                }
+                confetti({
+                    particleCount: 2,
+                    angle: 270,
+                    spread: 180,
+                    origin: { x: Math.random(), y: 0 },
+                    shapes: [pmShape],
+                    scalar: 3,
+                    gravity: 0.8,
+                    drift: (Math.random() - 0.5) * 0.5
+                });
+            }, 80);
+
         } catch (err) { console.error('Confetti failed:', err); }
     };
 
@@ -452,7 +505,7 @@ export default function PMSimulator() {
                         <img src="https://thalay.eu/wp-content/uploads/2021/04/Thalay.eu3-Transparent150.png" alt="thalay.eu" className="h-6" />
                     </a>
                     <a href="https://www.facebook.com/thalay.eu" target="_blank" rel="noopener noreferrer" className="text-slate-400 hover:text-blue-600 transition-colors">
-                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" /></svg>
                     </a>
                 </div>
 
