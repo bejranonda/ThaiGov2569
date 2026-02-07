@@ -254,21 +254,18 @@ export default function PMSimulator() {
 
     // --- New Scoring System (v0.8.0) ---
     const calculateScore = () => {
-        // 1. Coalition stability (25 pts) - Rewarded for balanced government (55-65%)
-        // 50% + 1 (251) = 0 pts, 55-65% (275-325) = 25 pts (optimal), 75%+ (375+) = 0 pts (dangerous)
+        // 1. Coalition stability (25 pts) - Smooth curve peaking at 60%
+        // Peaks at 60%, smoothly decreases to 0 at 50% and 75%
         const percentage = (totalCoalitionSeats / 500) * 100;
         let coalitionScore = 0;
 
-        if (percentage >= 50.2) {
-            if (percentage <= 65) {
-                // Sweet spot (275-325 seats): Full points, peaks at 55-65%
-                coalitionScore = Math.round(25 * Math.min(1, (percentage - 50.2) / 14.8));
-            } else if (percentage < 75) {
-                // Over-qualified (65-75%): Reduce points linearly
-                coalitionScore = Math.max(0, Math.round(25 - ((percentage - 65) / 10) * 25));
+        if (percentage >= 50.2 && percentage <= 75) {
+            if (percentage <= 60) {
+                // Ramp up smoothly from 50.2% to 60% (0 to 25 points)
+                coalitionScore = Math.round(25 * (percentage - 50.2) / 9.8);
             } else {
-                // Dangerous (75%+): Penalized heavily
-                coalitionScore = 0;
+                // Ramp down smoothly from 60% to 75% (25 to 0 points)
+                coalitionScore = Math.max(0, Math.round(25 * (75 - percentage) / 15));
             }
         }
         coalitionScore = Math.max(0, Math.min(25, coalitionScore));
