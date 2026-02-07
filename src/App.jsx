@@ -254,9 +254,24 @@ export default function PMSimulator() {
 
     // --- New Scoring System (v0.8.0) ---
     const calculateScore = () => {
-        // 1. Coalition stability (25 pts)
-        const margin = Math.max(0, totalCoalitionSeats - MAJORITY_THRESHOLD);
-        const coalitionScore = Math.min(25, Math.round((margin / 150) * 25));
+        // 1. Coalition stability (25 pts) - Rewarded for balanced government (55-60%)
+        // 50% + 1 (251) = 0 pts, 55-60% (275-300) = 25 pts (optimal), 75%+ (375+) = 0 pts (dangerous)
+        const percentage = (totalCoalitionSeats / 500) * 100;
+        let coalitionScore = 0;
+
+        if (percentage >= 50.2) {
+            if (percentage <= 60) {
+                // Sweet spot (275-300 seats): Full points, peaks at 55-60%
+                coalitionScore = Math.round(25 * Math.min(1, (percentage - 50.2) / 9.8));
+            } else if (percentage < 75) {
+                // Over-qualified (60-75%): Reduce points linearly
+                coalitionScore = Math.max(0, Math.round(25 - ((percentage - 60) / 15) * 25));
+            } else {
+                // Dangerous (75%+): Penalized heavily
+                coalitionScore = 0;
+            }
+        }
+        coalitionScore = Math.max(0, Math.min(25, coalitionScore));
 
         // 2. Policy dimensions
         const selectedPolicyObjects = POLICIES.filter(p => selectedPolicies.has(p.id));
@@ -319,10 +334,21 @@ export default function PMSimulator() {
     // Dynamic commentary
     const getCommentary = (s) => {
         const comments = [];
-        if (s.coalition >= 20) comments.push('รัฐบาลมีฐานเสียงที่มั่นคงมาก');
-        else if (s.coalition >= 12) comments.push('เสียงข้างมากพอสมควร แต่ยังอาจมีปัญหา');
-        else if (s.coalition >= 5) comments.push('รัฐบาลเสียงปริ่มน้ำ อาจมีปัญหาในสภา');
-        else comments.push('เสียงข้างมากน้อยมาก อาจถูกอภิปรายไม่ไว้วางใจได้ง่าย');
+        const percentage = (totalCoalitionSeats / 500) * 100;
+
+        // Coalition commentary with recommendations
+        if (percentage < 50.2) {
+            comments.push('❌ ไม่มีเสียงข้างมาก - รัฐบาลไม่สามารถก่อตั้งได้');
+        } else if (percentage <= 55) {
+            comments.push('⚠️ ปริ่มน้ำ (50-55%) - บริหารยาก เสี่ยงหากมีคนถอนตัว');
+        } else if (percentage <= 60) {
+            comments.push('✅ เหมาะสมที่สุด (55-60%) - เสถียรพอที่ผลักดันนโยบาย แต่ฝ่ายค้านแข็งแกร่ง');
+            if (s.coalition > 0) comments.push('นี่คือความสมดุลที่ดีที่สุดสำหรับประชาธิปไตย');
+        } else if (percentage < 75) {
+            comments.push('⚠️ เกินพอ (60-75%) - เลยไปจากจุดสมดุลที่ดี');
+        } else {
+            comments.push('❌ อันตราย (75%+) - สามารถแก้รัฐธรรมนูญได้เพียงลำพัง คุกคามประชาธิปไตย');
+        }
 
         if (s.economy >= 12) comments.push('นโยบายเศรษฐกิจครอบคลุมดี');
         else if (s.economy >= 6) comments.push('นโยบายเศรษฐกิจยังไม่ครอบคลุมเท่าที่ควร');
