@@ -24,27 +24,15 @@ const MINISTRIES_MAP = {
     MOEN: 'กระทรวงพลังงาน',
 };
 
-// Call Google AI (Gemma 3 27B)
-async function callGoogleAI(env, systemPrompt, userMessage) {
-    const apiKey = env.GOOGLE_AI_KEY;
-    if (!apiKey) {
-        throw new Error('Google AI key not configured');
-    }
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${apiKey}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            systemInstruction: { parts: [{ text: systemPrompt }] },
-            contents: [{ role: 'user', parts: [{ text: userMessage }] }],
-            generationConfig: { maxOutputTokens: 700 }
-        })
+// Call Cloudflare Workers AI (Llama 3.1-8B)
+async function callCloudflareAI(env, systemPrompt, userMessage) {
+    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
+        messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userMessage }
+        ]
     });
-    if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Google AI error: ${response.status} ${error}`);
-    }
-    const data = await response.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
+    return response.response;
 }
 
 // Call OpenRouter API (backup)
@@ -83,12 +71,14 @@ async function callOpenRouterAPI(env, systemPrompt, userMessage) {
 
 // Get AI response with fallback
 async function getAIResponse(env, systemPrompt, userMessage, sourceLabel) {
-    // Try Google AI (Gemma 3 27B) first
+    // Try Cloudflare Workers AI first
     try {
-        const response = await callGoogleAI(env, systemPrompt, userMessage);
-        return { text: response, source: 'Google AI (Gemma 3-27B)' };
+        if (env.AI) {
+            const response = await callCloudflareAI(env, systemPrompt, userMessage);
+            return { text: response, source: 'Cloudflare Workers AI (Llama 3.1-8B)' };
+        }
     } catch (err) {
-        console.log(`Google AI failed for ${sourceLabel}:`, err.message);
+        console.log(`Cloudflare AI failed for ${sourceLabel}:`, err.message);
     }
 
     // Fallback to OpenRouter
