@@ -9,3 +9,16 @@ binding = "AI"
 binding = "DB"
 database_name = "thaigov2569-db"
 database_id = "af62e7d7-5a46-4ec8-b34d-72cb17993428"  # D1 database ID
+
+# Environment variables
+[env.production]
+vars = { }
+secrets = ["GOOGLE_AI_KEY", "OPENROUTER_API_KEY"]
+
+[env.preview]
+vars = { }
+secrets = ["GOOGLE_AI_KEY", "OPENROUTER_API_KEY"]
+
+[env.development]
+vars = { }
+# For local development, use .dev.vars file with actual keys

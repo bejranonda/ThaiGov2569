@@ -2,37 +2,59 @@
 
 ## Environment Variables Setup
 
+### Configuration with Wrangler
+
+This project uses `wrangler.toml` to manage Cloudflare environment variables. The configuration supports multiple environments:
+
+**In `wrangler.toml`:**
+```toml
+[env.production]
+vars = { }
+secrets = ["GOOGLE_AI_KEY", "OPENROUTER_API_KEY"]
+
+[env.preview]
+vars = { }
+secrets = ["GOOGLE_AI_KEY", "OPENROUTER_API_KEY"]
+```
+
 ### Local Development
 
-1. **Create `.env` file** (already exists, do not commit):
+1. **Create `.dev.vars` file** (already exists as template, do not commit):
 ```bash
-# .env
+# .dev.vars - used by `wrangler dev`
 D1_DATABASE_ID=your-database-id-here
 GOOGLE_AI_KEY=your-google-ai-key-here
 OPENROUTER_API_KEY=your-openrouter-api-key-here
 ```
 
-2. **For local Cloudflare Workers testing** (`.dev.vars`):
+2. **Run local Cloudflare Workers**:
 ```bash
-# .dev.vars - for local `wrangler dev`
-D1_DATABASE_ID=your-database-id-here
-GOOGLE_AI_KEY=your-google-ai-key-here
-OPENROUTER_API_KEY=your-openrouter-api-key-here
+# Reads from .dev.vars automatically
+npx wrangler dev
 ```
 
 ### Cloudflare Production Deployment
 
-Set environment variables in Cloudflare Pages/Workers dashboard:
+Set secrets in Cloudflare using Wrangler CLI:
 
-1. Go to: **Cloudflare Dashboard** → **Workers & Pages** → **Your Project** → **Settings** → **Environment variables**
+```bash
+# Add secrets to production environment
+npx wrangler secret put GOOGLE_AI_KEY --env production
+npx wrangler secret put OPENROUTER_API_KEY --env production
 
-2. Add the following variables:
+# Add secrets to preview environment (optional)
+npx wrangler secret put GOOGLE_AI_KEY --env preview
+npx wrangler secret put OPENROUTER_API_KEY --env preview
+```
 
-| Variable | Value | Source |
-|----------|-------|--------|
+Or use Cloudflare Dashboard:
+1. Go to: **Cloudflare Dashboard** → **Workers & Pages** → **Your Project** → **Settings** → **Secrets**
+2. Add the following secrets:
+
+| Secret | Value | Source |
+|--------|-------|--------|
 | `GOOGLE_AI_KEY` | Your API key | https://makersuite.google.com/app/apikeys |
 | `OPENROUTER_API_KEY` | Your API key | https://openrouter.ai/keys |
-| `D1_DATABASE_ID` | Database ID | Cloudflare D1 |
 
 **Environment Types:**
 - **Production**: Applied to `main` branch deployments
@@ -58,10 +80,11 @@ database_id = "af62e7d7-5a46-4ec8-b34d-72cb17993428"
 
 ## Important Security Notes
 
-⚠️ **NEVER commit `.env` or `.dev.vars` files to GitHub**
+⚠️ **NEVER commit `.dev.vars` or `.env` files to GitHub**
 - `.gitignore` already prevents this
 - API keys are sensitive credentials
-- Always use environment variables in production
+- Wrangler secrets are stored securely in Cloudflare, not in code
+- Use `npx wrangler secret put` for production secrets
 
 ## Local Development Workflow
 
@@ -69,15 +92,23 @@ database_id = "af62e7d7-5a46-4ec8-b34d-72cb17993428"
 # Install dependencies
 npm install
 
-# Run local Vite dev server (frontend only)
+# Update .dev.vars with your local API keys (not committed)
+# GOOGLE_AI_KEY=...
+# OPENROUTER_API_KEY=...
+
+# Run local Vite dev server (frontend only, no backend)
 npm run dev
 
-# For full local Cloudflare Workers testing:
+# For full local Cloudflare Workers testing (includes API):
 npm run build
 npx wrangler dev
 
-# Build for production
+# Deploy to production (requires secrets set in Cloudflare)
 npm run build
+npx wrangler deploy --env production
+
+# Deploy to preview environment
+npx wrangler deploy --env preview
 ```
 
 ## Testing AI Backend
@@ -91,15 +122,35 @@ Both require their respective API keys set in environment variables.
 ## Troubleshooting
 
 ### "Google AI key not configured"
-- Check environment variables are set in Cloudflare dashboard
-- Verify `GOOGLE_AI_KEY` is spelled correctly
-- Test locally with `.dev.vars` first
+**Local development:**
+- Check `.dev.vars` file has `GOOGLE_AI_KEY=...`
+- Run `npx wrangler dev` (reads from `.dev.vars`)
+
+**Production:**
+- Verify secret is set: `npx wrangler secret list --env production`
+- Set secret: `npx wrangler secret put GOOGLE_AI_KEY --env production`
+- Check Cloudflare Dashboard → Workers → Secrets
 
 ### "OpenRouter API error"
-- Verify `OPENROUTER_API_KEY` is valid
+- Verify `OPENROUTER_API_KEY` is valid and not expired
 - Check API key quota/limit at openrouter.ai
+- Ensure secret is set in Cloudflare: `npx wrangler secret list`
 
 ### D1 Database Connection Issues
-- Verify `D1_DATABASE_ID` matches your database
+- Verify `D1_DATABASE_ID` in `wrangler.toml` matches your database
 - Check database is deployed to Cloudflare D1
-- Run migrations via Wrangler CLI
+- Run migrations via Wrangler CLI: `npx wrangler d1 execute thaigov2569-db --file=schema.sql`
+
+### View All Secrets
+```bash
+# List production secrets
+npx wrangler secret list --env production
+
+# List preview secrets
+npx wrangler secret list --env preview
+```
+
+### Delete a Secret (if compromised)
+```bash
+npx wrangler secret delete GOOGLE_AI_KEY --env production
+```
