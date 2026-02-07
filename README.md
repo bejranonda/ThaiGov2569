@@ -34,6 +34,43 @@ This game is **Part 2** of the Thai Election 2569 series:
 | **Aggregate Stats** | Public leaderboards showing PM distribution, score averages |
 | **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
 
+## What's New in v0.8.1
+
+**Configuration Fixes & AI Revert: Cloudflare Pages, Llama AI, Database Setup**
+
+### Bug Fixes
+- ✅ **Fixed Cloudflare Pages Deployment**: Corrected project name from `thaigov2569` to `simgov2569`
+- ✅ **Fixed Environment Configuration**: Removed unsupported `[env.development]` (Pages only supports `preview`/`production`)
+- ✅ **Fixed AI Binding Scoping**: Moved AI and D1 bindings to environment-specific sections for proper secret resolution
+- ✅ **Fixed Database Configuration**: Verified D1 database name and binding correctness
+
+### AI Revert
+- **Reverted**: Google Gemma 3-27B → **Cloudflare Workers AI (Llama 3.1-8B)**
+- **Primary**: Cloudflare Workers AI (Llama 3.1-8B) - Free tier, native binding
+- **Fallback**: OpenRouter (Llama 3.3-70B)
+- **Benefit**: Removed external API key dependency for primary AI
+
+### Configuration Updates
+| Item | Before | After |
+|------|--------|-------|
+| Project Name | `thaigov2569` | `simgov2569` |
+| Database Name | (mismatch) | `thaigov2569-db` (verified) |
+| AI Primary | Google Gemma 3-27B | Cloudflare Llama 3.1-8B |
+| Environment Bindings | Top-level (broken) | Scoped to env.production/preview ✅ |
+
+### Local Development
+- Added Vite proxy for `/api/*` routes to `localhost:8788` (Wrangler)
+- Developers can now run `npm run dev` without manual Wrangler server setup (still need separate terminal)
+- Helpful error message if Wrangler is not running
+
+### Deployment Notes
+- Build: `npm run build`
+- Deploy: `npm run deploy` or `wrangler pages deploy dist`
+- No Google AI API keys required (uses Cloudflare's native AI)
+- OpenRouter as optional fallback for production reliability
+
+---
+
 ## What's New in v0.8.0
 
 **Story & UI Overhaul: Parliamentary PM Vote, Scoring Redesign, Policy Helper Inline**
@@ -246,10 +283,10 @@ This game is **Part 2** of the Thai Election 2569 series:
 ## Tech Stack
 
 - **Frontend:** React 18 + Vite + Tailwind CSS
-- **Hosting:** Autobahn Bot
+- **Hosting:** Cloudflare Pages (via Autobahn Bot custom domain)
 - **Backend:** Cloudflare Pages Functions
-- **AI:** Cloudflare Workers AI (Llama 3.1-8B) + OpenRouter backup (Llama 3.3-70B)
-- **Database:** Cloudflare D1
+- **AI:** Cloudflare Workers AI (Llama 3.1-8B) + OpenRouter Llama 3.3-70B (fallback)
+- **Database:** Cloudflare D1 (`thaigov2569-db`)
 - **Effects:** canvas-confetti (code-split)
 - **Screenshot:** html2canvas (code-split)
 - **Icons:** Lucide React
@@ -427,20 +464,22 @@ The game evaluates your government across 6 categories (100 points + 5 bonus tot
 
 ## AI Chat System
 
-The chat system uses Cloudflare Workers AI with automatic fallback to OpenRouter:
+The chat system uses Cloudflare Workers AI (Llama 3.1-8B) with automatic fallback to OpenRouter:
 
-### AI Models
-| Priority | Model | Parameters | Thai Support |
-|----------|-------|------------|--------------|
-| **Primary** | Cloudflare Llama 3.1-8B | 8B | Yes |
-| **Backup** | OpenRouter Llama 3.3-70B | 70B | Yes (Explicit) |
+### AI Models (v0.8.1+)
+| Priority | Model | Provider | Parameters | Thai Support |
+|----------|-------|----------|-----------|--------------|
+| **Primary** | Llama 3.1-8B Instruct | Cloudflare Workers AI | 8B | Yes ✅ |
+| **Fallback** | Llama 3.3-70B Instruct | OpenRouter | 70B | Yes ✅ |
 
 ### Features
-- **Free Tier**: Cloudflare (10,000 Neurons/day) + OpenRouter (free tier)
+- **Native Binding**: Uses Cloudflare's built-in `env.AI` binding (no external API keys needed for primary)
+- **Free Tier**: Cloudflare (10,000 operations/day) + OpenRouter (free tier fallback)
 - **Automatic Fallback**: Switches to OpenRouter when Cloudflare limits are reached
 - **Dual Responses**: PM answers first, then Opposition Leader adds their perspective
 - **Context Aware**: Knows coalition partners, seat counts, government policies
 - **Party Personas**: Each party has unique speaking style and signature phrases
+- **Max Tokens**: 700 per response for detailed answers
 
 ### Party Personas
 
@@ -497,12 +536,12 @@ This project is open source and available under the MIT License.
 
 - Built with [React](https://react.dev/)
 - Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Hosted on [Autobahn Bot](https://autobahn.bot)
+- Hosted on [Cloudflare Pages](https://pages.cloudflare.com/) via [Autobahn Bot](https://autobahn.bot)
 - Backend by [Cloudflare Pages Functions](https://pages.cloudflare.com/)
-- AI by [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai)
-- Backup AI by [OpenRouter](https://openrouter.ai/)
+- Primary AI by [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai) (Llama 3.1-8B)
+- Fallback AI by [OpenRouter](https://openrouter.ai/) (Llama 3.3-70B)
+- Database by [Cloudflare D1](https://developers.cloudflare.com/d1/)
 - Confetti by [canvas-confetti](https://github.com/catdad/canvas-confetti)
 - Screenshots by [html2canvas](https://html2canvas.hertzen.com/)
-- Primary Model: Meta Llama 3.1 8B Instruct
-- Backup Model: Meta Llama 3.3 70B Instruct
+- AI Models: Meta Llama (3.1-8B primary, 3.3-70B backup)
 - Predecessor: [Sim-Thailand 2569](https://thalay.eu/sim2569) by [thalay.eu](https://thalay.eu/)
