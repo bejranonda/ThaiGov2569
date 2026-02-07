@@ -8,7 +8,7 @@ binding = "AI"
 
 [[env.production.d1_databases]]
 binding = "DB"
-database_name = "simgov2569-db"
+database_name = "thaigov2569-db"
 database_id = "af62e7d7-5a46-4ec8-b34d-72cb17993428"
 
 [env.preview]
@@ -17,5 +17,5 @@ binding = "AI"
 
 [[env.preview.d1_databases]]
 binding = "DB"
-database_name = "simgov2569-db"
+database_name = "thaigov2569-db"
 database_id = "af62e7d7-5a46-4ec8-b34d-72cb17993428"
