@@ -21,9 +21,11 @@ CREATE TABLE game_sessions (
   chat_count INTEGER DEFAULT 0,
   score_total INTEGER,
   score_coalition INTEGER,
-  score_diversity INTEGER,
+  score_economy INTEGER,
+  score_social INTEGER,
+  score_security INTEGER,
   score_cabinet INTEGER,
-  score_engagement INTEGER,
+  score_balance_bonus INTEGER,
   grade TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

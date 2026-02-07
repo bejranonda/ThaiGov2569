@@ -23,9 +23,13 @@ import {
     Camera,
     Share2,
     Download,
+    Volume2,
+    VolumeX,
+    HelpCircle,
 } from 'lucide-react';
 import { PARTIES, MINISTRIES, TOTAL_SEATS, MAJORITY_THRESHOLD } from './data';
 import { POLICIES } from './policies';
+import { playSelect, playDeselect, playSuccess, playTransition, playFanfare, setMuted, isMuted } from './sounds';
 
 // IDs of original policies that are now grouped (v0.6.0)
 const GROUPED_POLICY_IDS = [
@@ -88,9 +92,9 @@ const PARTY_EMOJI = {
 
 const STEP_LABELS = [
     { icon: Users, label: 'รวมเสียง' },
-    { icon: FileText, label: 'นโยบาย' },
+    { icon: FileText, label: '100 วันแรก' },
     { icon: Briefcase, label: 'ครม.' },
-    { icon: MessageSquare, label: 'บริหาร' },
+    { icon: MessageSquare, label: 'ถามนายก' },
     { icon: BarChart3, label: 'ผลลัพธ์' },
 ];
 
@@ -102,6 +106,16 @@ const POLICY_CATEGORIES = [
     { id: 'environment', name: 'สิ่งแวดล้อม' },
     { id: 'politics', name: 'การเมือง' },
 ];
+
+// Policy dimension mapping for new scoring
+const DIMENSION_MAP = {
+    economy: 'เศรษฐกิจ',
+    social: 'สังคม',
+    education: 'สังคม',
+    security: 'ความมั่นคง',
+    environment: 'ความมั่นคง',
+    politics: 'ความมั่นคง',
+};
 
 // Fisher-Yates shuffle
 function shuffleArray(arr) {
@@ -120,7 +134,7 @@ export default function PMSimulator() {
     const [coalition, setCoalition] = useState([]);
     const [cabinet, setCabinet] = useState({});
     const [chatLog, setChatHistory] = useState([
-        { sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ประชาชนรอถามท่าน 1 คำถามครับ' }
+        { sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับ ขณะนี้ท่านนายกรัฐมนตรีพร้อมรับฟังเสียงประชาชนแล้ว ท่านสามารถถามคำถามได้ 1 ข้อครับ' }
     ]);
     const [inputMessage, setInputMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -132,9 +146,19 @@ export default function PMSimulator() {
     const [hasAskedQuestion, setHasAskedQuestion] = useState(false);
     const [streamingText, setStreamingText] = useState({});
     const [streamingDone, setStreamingDone] = useState({});
+    const [soundMuted, setSoundMuted] = useState(() => {
+        try { return localStorage.getItem('simgov-muted') === 'true'; } catch { return false; }
+    });
+    const [showHelper, setShowHelper] = useState({});
 
     const chatEndRef = useRef(null);
     const resultsRef = useRef(null);
+
+    // Sync mute state
+    useEffect(() => {
+        setMuted(soundMuted);
+        try { localStorage.setItem('simgov-muted', soundMuted); } catch {}
+    }, [soundMuted]);
 
     const totalCoalitionSeats = coalition.reduce((sum, pId) => {
         const party = PARTIES.find(p => p.id === pId);
@@ -158,6 +182,7 @@ export default function PMSimulator() {
 
     const toggleParty = (partyId) => {
         if (coalition.includes(partyId)) {
+            playDeselect();
             setCoalition(coalition.filter(id => id !== partyId));
             const newCabinet = { ...cabinet };
             Object.keys(newCabinet).forEach(key => {
@@ -165,6 +190,7 @@ export default function PMSimulator() {
             });
             setCabinet(newCabinet);
         } else {
+            playSelect();
             setCoalition([...coalition, partyId]);
         }
     };
@@ -224,18 +250,35 @@ export default function PMSimulator() {
             if (reshuffleCount >= 2) return;
             setReshuffleCount(prev => prev + 1);
         }
+        playTransition();
         setStep(targetStep);
     };
 
-    // --- Scoring ---
+    // --- New Scoring System ---
     const calculateScore = () => {
+        // 1. Coalition stability (30 pts) - harder curve
         const margin = Math.max(0, totalCoalitionSeats - MAJORITY_THRESHOLD);
-        const coalitionScore = Math.min(25, Math.round((margin / 100) * 25));
+        const coalitionScore = Math.min(30, Math.round((margin / 150) * 30));
 
+        // 2. Policy dimensions
         const selectedPolicyObjects = POLICIES.filter(p => selectedPolicies.has(p.id));
-        const uniqueCategories = new Set(selectedPolicyObjects.map(p => p.cat));
-        const diversityScore = Math.min(25, Math.round((uniqueCategories.size / POLICY_CATEGORIES.length) * 25));
 
+        // Economy dimension: cat economy
+        const economyPolicies = selectedPolicyObjects.filter(p => p.cat === 'economy');
+        const totalEconomy = POLICIES.filter(p => p.cat === 'economy' && !GROUPED_POLICY_IDS.includes(p.id)).length;
+        const economyScore = Math.min(15, Math.round((economyPolicies.length / Math.max(1, totalEconomy)) * 15));
+
+        // Social dimension: cat social + education
+        const socialPolicies = selectedPolicyObjects.filter(p => p.cat === 'social' || p.cat === 'education');
+        const totalSocial = POLICIES.filter(p => (p.cat === 'social' || p.cat === 'education') && !GROUPED_POLICY_IDS.includes(p.id)).length;
+        const socialScore = Math.min(15, Math.round((socialPolicies.length / Math.max(1, totalSocial)) * 15));
+
+        // Security dimension: cat security + environment + politics
+        const securityPolicies = selectedPolicyObjects.filter(p => p.cat === 'security' || p.cat === 'environment' || p.cat === 'politics');
+        const totalSecurity = POLICIES.filter(p => (p.cat === 'security' || p.cat === 'environment' || p.cat === 'politics') && !GROUPED_POLICY_IDS.includes(p.id)).length;
+        const securityScore = Math.min(15, Math.round((securityPolicies.length / Math.max(1, totalSecurity)) * 15));
+
+        // 3. Cabinet expertise (20 pts)
         let expertiseMatches = 0;
         MINISTRIES.forEach(min => {
             const assignedPartyId = cabinet[min.id];
@@ -244,32 +287,54 @@ export default function PMSimulator() {
                 if (party && party.policies && party.policies[min.key]) expertiseMatches++;
             }
         });
-        const cabinetScore = Math.min(25, Math.round((expertiseMatches / MINISTRIES.length) * 25));
+        const cabinetScore = Math.min(20, Math.round((expertiseMatches / MINISTRIES.length) * 20));
 
-        const userMessages = chatLog.filter(m => m.sender === 'user').length;
-        const engagementScore = Math.min(25, userMessages > 0 ? 25 : 0);
+        // 4. Balance bonus (+5) - all 3 dimensions have at least 1 policy
+        const hasEconomy = economyPolicies.length > 0;
+        const hasSocial = socialPolicies.length > 0;
+        const hasSecurity = securityPolicies.length > 0;
+        const balanceBonus = (hasEconomy && hasSocial && hasSecurity) ? 5 : 0;
 
-        const total = coalitionScore + diversityScore + cabinetScore + engagementScore;
-        const grade = total >= 90 ? 'A+' : total >= 80 ? 'A' : total >= 70 ? 'B+' : total >= 60 ? 'B' : total >= 50 ? 'C' : total >= 40 ? 'D' : 'F';
-        return { total, coalition: coalitionScore, diversity: diversityScore, cabinet: cabinetScore, engagement: engagementScore, grade };
+        const total = coalitionScore + economyScore + socialScore + securityScore + cabinetScore + balanceBonus;
+
+        // Harder grading curve
+        const grade = total >= 92 ? 'A+' : total >= 82 ? 'A' : total >= 72 ? 'B+' : total >= 62 ? 'B' : total >= 52 ? 'C+' : total >= 42 ? 'C' : total >= 32 ? 'D' : 'F';
+
+        return {
+            total, grade,
+            coalition: coalitionScore,
+            economy: economyScore,
+            social: socialScore,
+            security: securityScore,
+            cabinet: cabinetScore,
+            balanceBonus,
+        };
     };
 
     // Dynamic commentary
     const getCommentary = (s) => {
         const comments = [];
-        if (s.coalition >= 20) comments.push('รัฐบาลมีฐานเสียงที่มั่นคง');
-        else if (s.coalition >= 10) comments.push('เสียงข้างมากแต่อาจไม่มั่นคง');
-        else comments.push('รัฐบาลเสียงปริ่มน้ำ อาจมีปัญหาในสภา');
+        if (s.coalition >= 25) comments.push('รัฐบาลมีฐานเสียงที่มั่นคงมาก');
+        else if (s.coalition >= 15) comments.push('เสียงข้างมากพอสมควร แต่ยังอาจมีปัญหา');
+        else if (s.coalition >= 5) comments.push('รัฐบาลเสียงปริ่มน้ำ อาจมีปัญหาในสภา');
+        else comments.push('เสียงข้างมากน้อยมาก อาจถูกอภิปรายไม่ไว้วางใจได้ง่าย');
 
-        if (s.diversity >= 20) comments.push('นโยบายครอบคลุมทุกด้าน');
-        else if (s.diversity >= 10) comments.push('นโยบายดีแต่ยังขาดบางมิติ');
-        else comments.push('นโยบายยังไม่ครอบคลุมเท่าที่ควร');
+        if (s.economy >= 12) comments.push('นโยบายเศรษฐกิจครอบคลุมดี');
+        else if (s.economy >= 6) comments.push('นโยบายเศรษฐกิจยังไม่ครอบคลุมเท่าที่ควร');
+        else comments.push('ขาดนโยบายเศรษฐกิจที่ชัดเจน');
 
-        if (s.cabinet >= 20) comments.push('ครม. ตรงกับจุดแข็งของแต่ละพรรค');
+        if (s.social >= 12) comments.push('นโยบายสังคมและการศึกษาแข็งแกร่ง');
+        else if (s.social >= 6) comments.push('นโยบายสังคมยังมีช่องว่าง');
+        else comments.push('ด้านสังคมและการศึกษายังต้องเติมเต็ม');
+
+        if (s.security >= 12) comments.push('ครอบคลุมด้านความมั่นคงและสิ่งแวดล้อม');
+        else if (s.security >= 6) comments.push('ด้านความมั่นคงยังพอมีแต่ไม่ครบ');
+        else comments.push('ขาดนโยบายด้านความมั่นคง สิ่งแวดล้อม หรือการเมือง');
+
+        if (s.cabinet >= 16) comments.push('ครม. ตรงกับจุดแข็งของแต่ละพรรค');
         else comments.push('บางกระทรวงอาจไม่ตรงกับความเชี่ยวชาญพรรค');
 
-        if (s.engagement >= 15) comments.push('ถามคำถามที่ดีต่อรัฐบาล');
-        else comments.push('ยังไม่ได้ถามคำถามรัฐบาล');
+        if (s.balanceBonus > 0) comments.push('ได้โบนัสดุลยภาพนโยบาย! ครบทั้ง 3 มิติ');
 
         return comments;
     };
@@ -287,8 +352,9 @@ export default function PMSimulator() {
                     cabinet, chat_questions: chatLog.filter(m => m.sender === 'user').map(m => m.text),
                     chat_count: chatLog.filter(m => m.sender === 'user').length,
                     score_total: scoreData.total, score_coalition: scoreData.coalition,
-                    score_diversity: scoreData.diversity, score_cabinet: scoreData.cabinet,
-                    score_engagement: scoreData.engagement, grade: scoreData.grade,
+                    score_economy: scoreData.economy, score_social: scoreData.social,
+                    score_security: scoreData.security, score_cabinet: scoreData.cabinet,
+                    score_balance_bonus: scoreData.balanceBonus, grade: scoreData.grade,
                 }),
             });
         } catch (err) { console.error('Failed to save session:', err); }
@@ -320,72 +386,33 @@ export default function PMSimulator() {
             const confettiModule = await import('canvas-confetti');
             const confetti = confettiModule.default;
             const pmPartyId = cabinet['PM'] || coalition[0];
-
-            // Get PM party emoji ONLY (No mixing)
             const pmEmoji = PARTY_EMOJI[pmPartyId] || '🎉';
-
-            // Create shape from emoji
             const pmShape = confetti.shapeFromText({ text: pmEmoji, scalar: 4 });
-
-            // Grand opening burst
             const duration = 3000;
             const end = Date.now() + duration;
 
-            // 1. Center burst (The "Grand" start)
             confetti({
-                particleCount: 50,
-                spread: 100,
-                origin: { y: 0.4 },
-                shapes: [pmShape],
-                scalar: 3,
-                drift: 0,
-                ticks: 300
+                particleCount: 50, spread: 100, origin: { y: 0.4 },
+                shapes: [pmShape], scalar: 3, drift: 0, ticks: 300
             });
 
-            // 2. Side cannons (Shower effect)
             (function frame() {
                 const timeLeft = end - Date.now();
                 if (timeLeft <= 0) return;
-
-                confetti({
-                    particleCount: 3,
-                    angle: 60,
-                    spread: 45,
-                    origin: { x: 0 },
-                    shapes: [pmShape],
-                    scalar: 2.5
-                });
-                confetti({
-                    particleCount: 3,
-                    angle: 120,
-                    spread: 45,
-                    origin: { x: 1 },
-                    shapes: [pmShape],
-                    scalar: 2.5
-                });
-
+                confetti({ particleCount: 3, angle: 60, spread: 45, origin: { x: 0 }, shapes: [pmShape], scalar: 2.5 });
+                confetti({ particleCount: 3, angle: 120, spread: 45, origin: { x: 1 }, shapes: [pmShape], scalar: 2.5 });
                 requestAnimationFrame(frame);
             }());
 
-            // 3. Random rain from top
             const rainInterval = setInterval(() => {
                 const timeLeft = end - Date.now();
-                if (timeLeft <= 0) {
-                    clearInterval(rainInterval);
-                    return;
-                }
+                if (timeLeft <= 0) { clearInterval(rainInterval); return; }
                 confetti({
-                    particleCount: 2,
-                    angle: 270,
-                    spread: 180,
-                    origin: { x: Math.random(), y: 0 },
-                    shapes: [pmShape],
-                    scalar: 3,
-                    gravity: 0.8,
-                    drift: (Math.random() - 0.5) * 0.5
+                    particleCount: 2, angle: 270, spread: 180,
+                    origin: { x: Math.random(), y: 0 }, shapes: [pmShape],
+                    scalar: 3, gravity: 0.8, drift: (Math.random() - 0.5) * 0.5
                 });
             }, 80);
-
         } catch (err) { console.error('Confetti failed:', err); }
     };
 
@@ -414,9 +441,9 @@ export default function PMSimulator() {
         setInputMessage('');
         setIsTyping(true);
         setHasAskedQuestion(true);
+        playSelect();
 
         try {
-            // Build full context
             const selectedPolicyTitles = POLICIES.filter(p => selectedPolicies.has(p.id)).map(p => p.title);
             const cabinetMapping = {};
             Object.entries(cabinet).forEach(([minId, partyId]) => {
@@ -426,12 +453,8 @@ export default function PMSimulator() {
             });
 
             const context = {
-                message: currentInput,
-                cabinet,
-                coalition,
-                policies: selectedPolicyTitles,
-                cabinetMapping,
-                coalitionSeats: totalCoalitionSeats,
+                message: currentInput, cabinet, coalition,
+                policies: selectedPolicyTitles, cabinetMapping, coalitionSeats: totalCoalitionSeats,
             };
 
             const response = await fetch('/api/chat', {
@@ -444,23 +467,17 @@ export default function PMSimulator() {
             const data = await response.json();
 
             if (data.responses && Array.isArray(data.responses)) {
-                // Sequential streaming: PM first, then Opposition when PM completes
                 const pmResp = data.responses[0];
                 const oppResp = data.responses[1];
-
                 const pmKey = `pm-${Date.now()}`;
                 const oppKey = `opp-${Date.now()}`;
 
-                // Add PM message immediately
                 setChatHistory(prev => [...prev, {
                     sender: pmResp.sender, text: pmResp.text,
                     partyColor: pmResp.partyColor, streamKey: pmKey,
                 }]);
-
-                // Stream PM first, then Opposition when PM completes
                 streamText(pmKey, pmResp.text, 20);
 
-                // Add and stream Opposition after PM finishes
                 setTimeout(() => {
                     setChatHistory(prev => [...prev, {
                         sender: oppResp.sender, text: oppResp.text,
@@ -512,6 +529,9 @@ export default function PMSimulator() {
             }, 'image/png');
         } catch (err) { console.error('Share failed:', err); }
     };
+
+    // --- Mute toggle ---
+    const toggleMute = () => setSoundMuted(prev => !prev);
 
     // --- STEP PROGRESS INDICATOR ---
     const renderStepIndicator = () => (
@@ -570,7 +590,8 @@ export default function PMSimulator() {
                     <span className="text-2xl md:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-[length:200%_auto] animate-text-gradient">2569</span>
                 </div>
 
-                <p className="text-slate-500 text-base md:text-lg font-medium mb-6 animate-slide-up stagger-3">มาจัดตั้งรัฐบาลในฝัน และพูดคุยกับนายกของคุณ</p>
+                <p className="text-slate-500 text-base md:text-lg font-medium mb-2 animate-slide-up stagger-3">คุณคือพรรคร่วมรัฐบาล ที่มีเสียงมาจากประชาชน</p>
+                <p className="text-slate-400 text-sm mb-6 animate-slide-up stagger-3">มาจัดตั้งรัฐบาลในฝัน เลือกนโยบาย 100 วันแรก แล้วถามนายกของคุณ</p>
 
                 {/* Sequel Badge */}
                 <a href="https://thalay.eu/sim2569" target="_blank" rel="noopener noreferrer"
@@ -588,7 +609,7 @@ export default function PMSimulator() {
 
                 {/* CTA Button */}
                 <button
-                    onClick={() => setStep(1)}
+                    onClick={() => { playTransition(); setStep(1); }}
                     className="btn-shine px-10 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xl rounded-2xl shadow-xl shadow-blue-200 transition-all hover:scale-105 active:scale-95 flex items-center gap-3 mb-6 animate-slide-up stagger-5"
                 >
                     <Play size={22} /> เริ่มจัดตั้งรัฐบาล
@@ -614,7 +635,7 @@ export default function PMSimulator() {
                         <span className="text-slate-300">|</span>
                         <a href="https://dusitpoll.dusit.ac.th/UPLOAD_FILES/POLL/2569/PS-2569-1769744270.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 underline">สวนดุสิตโพล (ธ.ค. 68)</a>
                     </div>
-                    <a href="https://github.com/bejranonda/ThaiGov2569" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-blue-500 transition-colors font-mono mt-2">v0.5.0</a>
+                    <a href="https://github.com/bejranonda/ThaiGov2569" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-blue-500 transition-colors font-mono mt-2">v0.7.0</a>
                 </div>
             </div>
         </div>
@@ -680,13 +701,14 @@ export default function PMSimulator() {
                             })[0];
                             setCabinet({ ...cabinet, 'PM': largestPartyId });
                             setPolicyCategoryIndex(0);
+                            playSuccess();
                             setStep(2);
                         }
                     }}
                     disabled={totalCoalitionSeats < MAJORITY_THRESHOLD}
                     className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2"
                 >
-                    ถัดไป: เลือกนโยบาย <ChevronRight />
+                    ถัดไป: เลือกสิ่งที่อยากทำ <ChevronRight />
                 </button>
             </div>
         </div>
@@ -695,8 +717,13 @@ export default function PMSimulator() {
     // --- POLICY SELECTOR (Step 2) - Step through categories ---
     const togglePolicy = (id) => {
         const newSet = new Set(selectedPolicies);
-        if (newSet.has(id)) newSet.delete(id);
-        else newSet.add(id);
+        if (newSet.has(id)) {
+            newSet.delete(id);
+            playDeselect();
+        } else {
+            newSet.add(id);
+            playSelect();
+        }
         setSelectedPolicies(newSet);
     };
 
@@ -705,6 +732,10 @@ export default function PMSimulator() {
         if (!currentCat) return null;
         const policiesInCat = shuffledPoliciesByCategory[currentCat.id] || [];
         const selectedInCat = policiesInCat.filter(p => selectedPolicies.has(p.id)).length;
+        const helperVisible = showHelper[currentCat.id];
+
+        // Get policies with pro/con for helper
+        const policiesWithHelper = policiesInCat.filter(p => p.pro && p.con).slice(0, 5);
 
         return (
             <div className="animate-fade-in">
@@ -728,7 +759,9 @@ export default function PMSimulator() {
                             onClick={() => {
                                 if (policyCategoryIndex < activeCategories.length - 1) {
                                     setPolicyCategoryIndex(policyCategoryIndex + 1);
+                                    playTransition();
                                 } else {
+                                    playSuccess();
                                     setStep(3);
                                 }
                             }}
@@ -752,10 +785,45 @@ export default function PMSimulator() {
                 </div>
 
                 {/* Category heading */}
-                <div className="text-center mb-6">
-                    <h2 className="text-2xl font-bold text-slate-800">{currentCat.name}</h2>
-                    <p className="text-xs text-slate-500 mt-1">{policiesInCat.length} นโยบาย | เลือกแล้ว {selectedInCat} ในหมวดนี้</p>
+                <div className="text-center mb-4">
+                    <h2 className="text-2xl font-bold text-slate-800">สิ่งที่อยากให้ทำใน 100 วันแรก</h2>
+                    <p className="text-sm text-slate-500 mt-1">หมวด: {currentCat.name} ({policiesInCat.length} นโยบาย | เลือกแล้ว {selectedInCat})</p>
                 </div>
+
+                {/* Helper toggle */}
+                {policiesWithHelper.length > 0 && (
+                    <div className="mb-4">
+                        <button
+                            onClick={() => setShowHelper(prev => ({ ...prev, [currentCat.id]: !prev[currentCat.id] }))}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${helperVisible ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
+                        >
+                            <HelpCircle size={16} /> {helperVisible ? 'ซ่อนตัวช่วย' : 'ขอตัวช่วย'}
+                        </button>
+
+                        {helperVisible && (
+                            <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fade-in">
+                                <h3 className="font-bold text-amber-800 mb-3 text-sm">แนะนำนโยบายน่าสนใจในหมวดนี้:</h3>
+                                <div className="space-y-3">
+                                    {policiesWithHelper.map(p => (
+                                        <div key={p.id} className="bg-white rounded-lg p-3 border border-amber-100">
+                                            <div className="font-bold text-slate-800 text-sm mb-1">{p.title}</div>
+                                            <div className="flex gap-3 text-xs">
+                                                <div className="flex-1">
+                                                    <span className="text-emerald-600 font-bold">ข้อดี:</span>
+                                                    <span className="text-slate-600 ml-1">{p.pro}</span>
+                                                </div>
+                                                <div className="flex-1">
+                                                    <span className="text-red-500 font-bold">ข้อเสีย:</span>
+                                                    <span className="text-slate-600 ml-1">{p.con}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Policy cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -789,10 +857,10 @@ export default function PMSimulator() {
 
             {/* Quick Actions */}
             <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
-                <div className="text-sm font-bold text-slate-600 mb-3 flex items-center gap-2"><Zap size={16} /> ตั้งค่าอัตโนมาติ</div>
+                <div className="text-sm font-bold text-slate-600 mb-3 flex items-center gap-2"><Zap size={16} /> จัดแบบเร็ว</div>
                 <div className="flex flex-wrap gap-2">
                     <button onClick={autoAssignCabinet} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg text-sm font-bold transition shadow-sm">
-                        <Zap size={16} /> Auto-assign
+                        <Zap size={16} /> จัด ครม. ตามโควตา สส.
                     </button>
                     <button onClick={assignAllToPmParty} className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold transition shadow-sm">
                         <Crown size={16} /> พรรคนายกทุกกระทรวง
@@ -829,7 +897,7 @@ export default function PMSimulator() {
             </div>
 
             <div className="flex justify-end">
-                <button onClick={() => setStep(4)} disabled={Object.keys(cabinet).length < MINISTRIES.length}
+                <button onClick={() => { playSuccess(); setStep(4); }} disabled={Object.keys(cabinet).length < MINISTRIES.length}
                     className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
                     จัดตั้งรัฐบาลสำเร็จ! เข้าทำเนียบ <ChevronRight />
                 </button>
@@ -837,7 +905,7 @@ export default function PMSimulator() {
         </div>
     );
 
-    // --- GOVERNMENT CHAT (Step 4) - 1 question, streaming, action buttons ---
+    // --- GOVERNMENT CHAT (Step 4) - "ประชาชนถามนายก" ---
     const renderGovChat = () => {
         const allStreamed = Object.keys(streamingDone).length > 0 && Object.values(streamingDone).every(v => v);
 
@@ -846,8 +914,13 @@ export default function PMSimulator() {
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                        <h2 className="text-lg font-bold text-slate-800">ห้องแถลงข่าวรัฐบาล</h2>
+                        <h2 className="text-lg font-bold text-slate-800">ประชาชนถามนายก</h2>
                     </div>
+                </div>
+
+                {/* Role explanation */}
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-700">
+                    <strong>สลับบทบาท:</strong> ตอนนี้คุณเปลี่ยนจากผู้จัดตั้งรัฐบาล เป็น <strong>ประชาชน</strong> ที่ถามนายกฯ ของคุณเอง 1 คำถาม
                 </div>
 
                 {/* Chat Area */}
@@ -884,7 +957,7 @@ export default function PMSimulator() {
                     <>
                         <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-lg flex gap-2">
                             <input type="text" className="flex-grow p-3 bg-transparent focus:outline-none text-slate-700"
-                                placeholder="ถามรัฐบาล 1 คำถาม (เช่น เศรษฐกิจแก้ยังไง, ลดค่าไฟไหม...)"
+                                placeholder="ถามนายกฯ 1 คำถาม (เช่น เศรษฐกิจแก้ยังไง, ลดค่าไฟไหม...)"
                                 value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} />
                             <button onClick={handleSendMessage} disabled={isTyping || !inputMessage.trim()}
@@ -912,6 +985,7 @@ export default function PMSimulator() {
                             onClick={async () => {
                                 const scoreData = calculateScore();
                                 setScore(scoreData);
+                                playFanfare();
                                 await saveSession(scoreData);
                                 fetchAggregateStats();
                                 setStep(5);
@@ -999,17 +1073,19 @@ export default function PMSimulator() {
         const commentary = getCommentary(score);
 
         const scoreCategories = [
-            { label: 'เสถียรภาพรัฐบาล', value: score.coalition, max: 25, color: 'bg-emerald-500' },
-            { label: 'นโยบายครอบคลุมทุกมิติ', value: score.diversity, max: 25, color: 'bg-blue-500' },
-            { label: 'ครม. ตรงกับจุดแข็งพรรค', value: score.cabinet, max: 25, color: 'bg-purple-500' },
-            { label: 'ถามคำถามสำคัญ', value: score.engagement, max: 25, color: 'bg-amber-500' },
+            { label: 'เสถียรภาพรัฐบาล', value: score.coalition, max: 30, color: 'bg-emerald-500', explanation: `เสียงเหนือ 250 = ${totalCoalitionSeats - MAJORITY_THRESHOLD} ที่นั่ง (ยิ่งมากยิ่งดี)` },
+            { label: 'นโยบาย: เศรษฐกิจ', value: score.economy, max: 15, color: 'bg-blue-500', explanation: 'สัดส่วนนโยบายเศรษฐกิจที่เลือก' },
+            { label: 'นโยบาย: สังคม', value: score.social, max: 15, color: 'bg-purple-500', explanation: 'สัดส่วนนโยบายสังคม+การศึกษาที่เลือก' },
+            { label: 'นโยบาย: ความมั่นคง', value: score.security, max: 15, color: 'bg-amber-500', explanation: 'สัดส่วนนโยบายความมั่นคง+สิ่งแวดล้อม+การเมือง' },
+            { label: 'ครม. ตรงกับจุดแข็งพรรค', value: score.cabinet, max: 20, color: 'bg-cyan-500', explanation: 'จำนวนกระทรวงที่ตรงกับความเชี่ยวชาญ' },
         ];
 
         const resetGame = () => {
             setStep(0); setCoalition([]); setCabinet({}); setSelectedPolicies(new Set());
-            setChatHistory([{ sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับท่านนายก คณะรัฐมนตรีพร้อมทำงานแล้วครับ ประชาชนรอถามท่าน 1 คำถามครับ' }]);
+            setChatHistory([{ sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับ ขณะนี้ท่านนายกรัฐมนตรีพร้อมรับฟังเสียงประชาชนแล้ว ท่านสามารถถามคำถามได้ 1 ข้อครับ' }]);
             setInputMessage(''); setReshuffleCount(0); setConfettiFired(false); setScore(null);
             setPolicyCategoryIndex(0); setHasAskedQuestion(false); setStreamingText({}); setStreamingDone({});
+            setShowHelper({});
         };
 
         return (
@@ -1034,6 +1110,11 @@ export default function PMSimulator() {
                                 <span className="text-xs text-slate-400">/ 100</span>
                             </div>
                         </div>
+                        <div className="animate-grade-pop">
+                            <span className={`inline-block text-3xl font-extrabold px-4 py-1 rounded-xl ${score.grade === 'A+' || score.grade === 'A' ? 'bg-emerald-100 text-emerald-700' : score.grade.startsWith('B') ? 'bg-blue-100 text-blue-700' : score.grade.startsWith('C') ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                {score.grade}
+                            </span>
+                        </div>
                     </div>
 
                     {/* Score Breakdown */}
@@ -1049,8 +1130,20 @@ export default function PMSimulator() {
                                     <div className="h-3 bg-slate-100 rounded-full overflow-hidden">
                                         <div className={`h-full rounded-full ${cat.color} transition-all duration-1000`} style={{ width: `${(cat.value / cat.max) * 100}%` }} />
                                     </div>
+                                    <p className="text-[10px] text-slate-400 mt-0.5">{cat.explanation}</p>
                                 </div>
                             ))}
+
+                            {/* Balance bonus */}
+                            {score.balanceBonus > 0 && (
+                                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3">
+                                    <div className="flex justify-between text-sm">
+                                        <span className="text-emerald-700 font-bold">โบนัส: ดุลยภาพนโยบาย</span>
+                                        <span className="font-bold text-emerald-700">+{score.balanceBonus}</span>
+                                    </div>
+                                    <p className="text-[10px] text-emerald-600 mt-0.5">ครบทั้ง 3 มิติ (เศรษฐกิจ + สังคม + ความมั่นคง)</p>
+                                </div>
+                            )}
                         </div>
                     </div>
 
@@ -1115,9 +1208,13 @@ export default function PMSimulator() {
 
             {step >= 1 && (
                 <div className="max-w-4xl mx-auto">
-                    <header className="mb-2 text-center">
+                    <header className="mb-2 text-center relative">
                         <h1 className="text-2xl font-extrabold text-slate-900 mb-1">Sim-Government: Thailand 2569</h1>
-                        <p className="text-sm text-slate-400 mb-4">มาจัดตั้งรัฐบาลในฝัน และพูดคุยกับนายกของคุณ</p>
+                        <p className="text-sm text-slate-400 mb-4">คุณคือพรรคร่วมรัฐบาล ที่มีเสียงมาจากประชาชน</p>
+                        {/* Mute toggle */}
+                        <button onClick={toggleMute} className="absolute top-0 right-0 p-2 text-slate-400 hover:text-slate-600 transition-colors" title={soundMuted ? 'เปิดเสียง' : 'ปิดเสียง'}>
+                            {soundMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}
+                        </button>
                     </header>
                     {renderStepIndicator()}
                     {step === 1 && renderCoalitionBuilder()}

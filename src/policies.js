@@ -1,24 +1,24 @@
 export const POLICIES = [
     // --- เพื่อไทย (PTP) ---
-    { id: 101, party: "PTP", cat: "economy", title: "Digital Economy & รัฐร่วมจ่าย", desc: "ยกระดับ Digital Wallet เป็นโครงสร้างพื้นฐานดิจิทัล รัฐช่วยจ่าย 70% ประชาชน 30% กระตุ้น GDP ครั้งใหญ่", ref: "Nation Debate", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
+    { id: 101, party: "PTP", cat: "economy", title: "Digital Economy & รัฐร่วมจ่าย", desc: "ยกระดับ Digital Wallet เป็นโครงสร้างพื้นฐานดิจิทัล รัฐช่วยจ่าย 70% ประชาชน 30% กระตุ้น GDP ครั้งใหญ่", ref: "Nation Debate", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true, pro: "กระตุ้นเศรษฐกิจฐานรากทันที ดึงร้านค้าเข้าระบบดิจิทัล", con: "ใช้งบมหาศาล อาจเพิ่มหนี้สาธารณะ" },
     { id: 102, party: "PTP", cat: "economy", title: "ประกันกำไรเกษตรกร 30%", desc: "เปลี่ยนจากประกันราคา เป็นประกัน 'กำไร' ให้เกษตรกร 30% ของต้นทุนการผลิต", ref: "The Standard Economic Battle", url: "https://www.youtube.com/@TheStandardNews", verify: true },
     { id: 103, party: "PTP", cat: "education", title: "Wellness Economy Hub", desc: "สร้างงานสร้างรายได้จากเศรษฐกิจสุขภาพครบวงจรและนวัตกรรมการแพทย์ ดึงเม็ดเงินจากต่างชาติ", ref: "วิสัยทัศน์ ดร.ยศชนัน", url: "https://ptp.or.th", verify: true },
-    { id: 104, party: "PTP", cat: "politics", title: "Blockchain Government", desc: "ใช้เทคโนโลยี Blockchain จัดการข้อมูลภาครัฐ ลดความซ้ำซ้อนและป้องกันการทุจริตอย่างโปร่งใส", ref: "ยุทธศาสตร์พรรค", url: "https://ptp.or.th", verify: true },
-    { id: 105, party: "PTP", cat: "social", title: "30 บาท AI", desc: "ยกระดับ 30 บาทรักษาทุกโรคด้วย AI และ Telemedicine เชื่อมโยงข้อมูลสุขภาพทั่วประเทศ", ref: "Thai PBS Policy Watch", url: "https://thaipbs.or.th/election69", verify: true },
+    { id: 104, party: "PTP", cat: "politics", title: "Blockchain Government", desc: "ใช้เทคโนโลยี Blockchain จัดการข้อมูลภาครัฐ ลดความซ้ำซ้อนและป้องกันการทุจริตอย่างโปร่งใส", ref: "ยุทธศาสตร์พรรค", url: "https://ptp.or.th", verify: true, pro: "โปร่งใสตรวจสอบได้ ลดทุจริตจัดซื้อจัดจ้าง", con: "ใช้เวลาพัฒนาระบบนาน ข้าราชการอาจไม่พร้อม" },
+    { id: 105, party: "PTP", cat: "social", title: "30 บาท AI", desc: "ยกระดับ 30 บาทรักษาทุกโรคด้วย AI และ Telemedicine เชื่อมโยงข้อมูลสุขภาพทั่วประเทศ", ref: "Thai PBS Policy Watch", url: "https://thaipbs.or.th/election69", verify: true, pro: "ลดเวลารอพบแพทย์ เข้าถึงทุกพื้นที่", con: "AI อาจวินิจฉัยผิดพลาด ต้องลงทุนโครงสร้างพื้นฐาน" },
     { id: 106, party: "PTP", cat: "economy", title: "รถไฟฟ้า 20 บาทตลอดสาย", desc: "สานต่อนโยบายรถไฟฟ้า 20 บาทให้ครอบคลุมทุกสี ทุกเส้นทาง เพื่อลดค่าครองชีพคนเมือง", ref: "นโยบายคมนาคม", url: "https://ptp.or.th", verify: true },
     { id: 107, party: "PTP", cat: "social", title: "สิทธิความหลากหลายทางเพศ", desc: "ผลักดันกฎหมายรับรองอัตลักษณ์ทางเพศและสวัสดิการข้ามเพศ", ref: "เวที Pride Vote", url: "https://www.youtube.com/playlist?list=PLR2sF1qc48QSVbFJnJbWFrUC8rsP", verify: true },
     { id: 108, party: "PTP", cat: "education", title: "Learn to Earn", desc: "เรียนรู้มีรายได้ จบ ป.ตรี อายุ 18 ปี ปรับระบบการศึกษาให้ยืดหยุ่น", ref: "นโยบายการศึกษา", url: "https://ptp.or.th", verify: true },
     { id: 109, party: "PTP", cat: "education", title: "โรงเรียน 2 ภาษา", desc: "สอนภาษาอังกฤษ/จีน ตั้งแต่ ป.1 ทุกท้องถิ่น", ref: "นโยบายการศึกษา", url: "https://ptp.or.th", verify: true },
-    { id: 110, party: "PTP", cat: "security", title: "วีซ่าฟรีทั่วโลก (Visa Free)", desc: "เจรจาวีซ่าฟรีกับกลุ่มประเทศเชงเก้นและพันธมิตร เพื่อส่งเสริมการท่องเที่ยวและธุรกิจ", ref: "วิสัยทัศน์นายกฯ", url: "https://ptp.or.th", verify: true },
+    { id: 110, party: "PTP", cat: "security", title: "วีซ่าฟรีทั่วโลก (Visa Free)", desc: "เจรจาวีซ่าฟรีกับกลุ่มประเทศเชงเก้นและพันธมิตร เพื่อส่งเสริมการท่องเที่ยวและธุรกิจ", ref: "วิสัยทัศน์นายกฯ", url: "https://ptp.or.th", verify: true, pro: "ดึงนักท่องเที่ยวเพิ่ม สร้างรายได้เข้าประเทศ", con: "อาจมีปัญหาความมั่นคง การควบคุมคนเข้าเมือง" },
     { id: 111, party: "PTP", cat: "environment", title: "พ.ร.บ.อากาศสะอาด", desc: "ผลักดันกฎหมายอากาศสะอาดฉบับบูรณาการ คืนสิทธิในการหายใจให้ประชาชน", ref: "แถลงการณ์พรรค", url: "https://ptp.or.th", verify: true },
     { id: 112, party: "PTP", cat: "environment", title: "Net Zero 2050", desc: "มุ่งสู่ความเป็นกลางทางคาร์บอนภายในปี 2050 ด้วยเศรษฐกิจสีเขียวและ Carbon Credit", ref: "วิสัยทัศน์สิ่งแวดล้อม", url: "https://ptp.or.th", verify: true },
 
     // --- ประชาชน (PP) ---
-    { id: 201, party: "PP", cat: "social", title: "สวัสดิการถ้วนหน้าครบวงจร", desc: "เงินเด็กเล็ก 600 บาท, ผู้สูงอายุ 1,000 บาท ให้ทุกคนโดยไม่ต้องพิสูจน์ความจน เริ่ม 1 ต.ค. 69", ref: "เว็บไซต์พรรค / Debate", url: "https://peoplesparty.or.th", verify: true },
+    { id: 201, party: "PP", cat: "social", title: "สวัสดิการถ้วนหน้าครบวงจร", desc: "เงินเด็กเล็ก 600 บาท, ผู้สูงอายุ 1,000 บาท ให้ทุกคนโดยไม่ต้องพิสูจน์ความจน เริ่ม 1 ต.ค. 69", ref: "เว็บไซต์พรรค / Debate", url: "https://peoplesparty.or.th", verify: true, pro: "ครอบคลุมทุกคน ไม่ตกหล่น ลดความเหลื่อมล้ำ", con: "ใช้งบมาก อาจไม่ยั่งยืนในระยะยาว" },
     { id: 202, party: "PP", cat: "economy", title: "หวยใบเสร็จ", desc: "นำใบกำกับภาษีร้านค้ารายย่อยมาชิงโชคทุกเดือน ดึง SME เข้าระบบและกระตุ้นยอดขายฐานราก", ref: "White Paper", url: "https://election69.peoplesparty.or.th/policy/", verify: true },
-    { id: 203, party: "PP", cat: "politics", title: "จังหวัดจัดการตนเอง", desc: "ยุติรัฐราชการรวมศูนย์ กระจายอำนาจและงบประมาณ เลือกตั้งผู้ว่าฯ ทุกจังหวัดทั่วประเทศ", ref: "The Standard Battle", url: "https://www.youtube.com/@TheStandardNews", verify: true },
+    { id: 203, party: "PP", cat: "politics", title: "จังหวัดจัดการตนเอง", desc: "ยุติรัฐราชการรวมศูนย์ กระจายอำนาจและงบประมาณ เลือกตั้งผู้ว่าฯ ทุกจังหวัดทั่วประเทศ", ref: "The Standard Battle", url: "https://www.youtube.com/@TheStandardNews", verify: true, pro: "ท้องถิ่นแก้ปัญหาได้ตรงจุด ลดความเหลื่อมล้ำ", con: "เสี่ยงทุจริตท้องถิ่น ขาดกำลังคนที่มีคุณภาพ" },
     { id: 204, party: "PP", cat: "education", title: "คืนครูให้นักเรียน", desc: "ลดภาระงานเอกสารครู ยกเลิกพิธีกรรมที่ไม่จำเป็น ปฏิรูปหลักสูตรให้ทันสมัย", ref: "เว็บไซต์พรรค", url: "https://peoplesparty.or.th", verify: true },
-    { id: 205, party: "PP", cat: "economy", title: "ทลายทุนผูกขาด", desc: "แก้กฎหมายแข่งขันทางการค้า เปิดเสรีสุราและพลังงาน ลดค่าครองชีพประชาชน", ref: "เวทีปราศรัยใหญ่", url: "https://peoplesparty.or.th", verify: true },
+    { id: 205, party: "PP", cat: "economy", title: "ทลายทุนผูกขาด", desc: "แก้กฎหมายแข่งขันทางการค้า เปิดเสรีสุราและพลังงาน ลดค่าครองชีพประชาชน", ref: "เวทีปราศรัยใหญ่", url: "https://peoplesparty.or.th", verify: true, pro: "ลดค่าครองชีพ สร้างโอกาสแข่งขันเป็นธรรม", con: "ธุรกิจใหญ่ต่อต้าน อาจเกิดช่วงเปลี่ยนผ่านวุ่นวาย" },
     { id: 206, party: "PP", cat: "security", title: "ยกเลิกเกณฑ์ทหาร", desc: "เปลี่ยนเป็นระบบสมัครใจ 100% สร้างทหารอาชีพ ลดจำนวนนายพล", ref: "นโยบายพรรค", url: "https://peoplesparty.or.th", verify: true },
     { id: 207, party: "PP", cat: "social", title: "สมรสเท่าเทียมทันที", desc: "ผลักดันกฎหมายสมรสเท่าเทียมให้ผ่านสภาและบังคับใช้ภายใน 100 วันแรก", ref: "เวที Pride Vote", url: "https://www.youtube.com/playlist?list=PLR2sF1qc48QSVbFJnJbWFrUC8rsP", verify: true },
     { id: 208, party: "PP", cat: "economy", title: "Strategic Industries", desc: "สร้างห่วงโซ่อุปทานใหม่ในอุตสาหกรรมยุทธศาสตร์ เพื่อแข่งขันในเวทีโลก", ref: "เวที FCCT", url: "https://www.youtube.com/watch?v=L2wL6jkUrqY", verify: true },
@@ -40,7 +40,7 @@ export const POLICIES = [
     { id: 309, party: "UTN", cat: "environment", title: "กฎหมายโซลาร์เสรี", desc: "ปลดล็อกให้ประชาชนผลิตไฟฟ้าขายเข้าระบบได้จริง ลดขั้นตอนการขออนุญาต", ref: "รื้อ ลด ปลด สร้าง", url: "https://unitedthaination.or.th", verify: true },
 
     // --- ภูมิใจไทย (BJT) ---
-    { id: 401, party: "BJT", cat: "economy", title: "พักหนี้ 3 ปี หยุดต้นปลอดดอก", desc: "พักหนี้วงเงินไม่เกิน 1 ล้านบาท เป็นเวลา 3 ปี พร้อมโครงการฝึกอาชีพปลดหนี้", ref: "นโยบายพรรค 2569", url: "https://bhumjaithai.com", verify: true },
+    { id: 401, party: "BJT", cat: "economy", title: "พักหนี้ 3 ปี หยุดต้นปลอดดอก", desc: "พักหนี้วงเงินไม่เกิน 1 ล้านบาท เป็นเวลา 3 ปี พร้อมโครงการฝึกอาชีพปลดหนี้", ref: "นโยบายพรรค 2569", url: "https://bhumjaithai.com", verify: true, pro: "ช่วยลูกหนี้หายใจได้ มีโอกาสตั้งตัว", con: "สถาบันการเงินขาดสภาพคล่อง อาจสร้างวินัยการเงินที่ไม่ดี" },
     { id: 402, party: "BJT", cat: "social", title: "ฟรีโซล่าเซลล์", desc: "ติดตั้งโซล่าเซลล์ให้ทุกหลังคาเรือน ลดค่าไฟทันที 450 บาท/เดือน", ref: "พูดแล้วทำ Plus", url: "https://bhumjaithai.com", verify: true },
     { id: 403, party: "BJT", cat: "economy", title: "กู้ฉุกเฉิน 50,000 บาท", desc: "กองทุนเงินกู้ฉุกเฉินสำหรับประชาชน รู้ผลไว ไม่ต้องมีคนค้ำประกัน", ref: "เว็บไซต์พรรค", url: "https://bhumjaithai.com", verify: true },
     { id: 404, party: "BJT", cat: "social", title: "เครื่องฉายรังสีทุกจังหวัด", desc: "จัดหาเครื่องฉายรังสียับยั้งมะเร็งให้ครอบคลุมทุกโรงพยาบาลจังหวัด ลดการเดินทาง", ref: "นโยบายสาธารณสุข", url: "https://bhumjaithai.com", verify: true },
@@ -66,7 +66,7 @@ export const POLICIES = [
     { id: 510, party: "DEM", cat: "economy", title: "SME แต้มต่อ", desc: "ให้แต้มต่อ SME ในการเข้าถึงสินเชื่อและการจัดซื้อจัดจ้างภาครัฐ", ref: "ทีมเศรษฐกิจ", url: "https://democrat.or.th", verify: true },
 
     // --- ประชาชาติ (PCC) ---
-    { id: 601, party: "PCC", cat: "economy", title: "ล้างหนี้ กยศ. 4 ล้านคน", desc: "ยกหนี้ กยศ. ทั้งหมด (อ้างเหตุผลขัด รธน.) เพื่อปลดล็อกคนรุ่นใหม่", ref: "Nation Debate (ทวี)", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
+    { id: 601, party: "PCC", cat: "economy", title: "ล้างหนี้ กยศ. 4 ล้านคน", desc: "ยกหนี้ กยศ. ทั้งหมด (อ้างเหตุผลขัด รธน.) เพื่อปลดล็อกคนรุ่นใหม่", ref: "Nation Debate (ทวี)", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true, pro: "ปลดล็อกคนรุ่นใหม่ ลดหนี้ครัวเรือน", con: "ใช้งบภาษีมาก ไม่เป็นธรรมกับคนที่ชำระหนี้แล้ว" },
     { id: 602, party: "PCC", cat: "economy", title: "น้ำมันลิตรละ 20 บาท", desc: "ลดราคาน้ำมันดีเซลและเบนซินเหลือ 20 บาททันที โดยปรับโครงสร้างหน้าโรงกลั่น", ref: "The Standard Economic Battle", url: "https://www.youtube.com/@TheStandardNews", verify: true },
     { id: 603, party: "PCC", cat: "security", title: "พ.ร.ก. สันติภาพ", desc: "ออกกฎหมายสันติภาพชายแดนใต้ ยกเลิกกฎอัยการศึก เน้นการเจรจาพูดคุย", ref: "Nation Debate", url: "https://www.youtube.com/live/mUTZk_DtlrM", verify: true },
     { id: 604, party: "PCC", cat: "politics", title: "แก้รัฐธรรมนูญทั้งฉบับ", desc: "รื้อโครงสร้างอำนาจรัฐผ่าน สสร. ที่มาจากการเลือกตั้ง เพื่อความยุติธรรม", ref: "Matichon Real Politics", url: "https://www.youtube.com/@matichontv", verify: true },
@@ -126,14 +126,16 @@ export const POLICIES = [
         id: 901, supporters: ["PTP", "BJT", "PP"], cat: "environment",
         title: "รถไฟฟ้าและรถเมล์ไฟฟ้าทั่วประเทศ",
         desc: "รถไฟฟ้า 20 บาทตลอดสาย, รถเมล์ไฟฟ้าทุกจังหวัด ลดค่าครองชีพคนเมืองและมลพิษ",
-        ref: "นโยบายขนส่ง", url: "#", verify: true
+        ref: "นโยบายขนส่ง", url: "#", verify: true,
+        pro: "ลดค่าเดินทาง ลดมลพิษ กระจายโอกาส", con: "ใช้งบลงทุนสูง อาจใช้เวลานานกว่าจะครอบคลุม"
     },
     // Education
     {
         id: 902, supporters: ["UTN", "TST", "BJT", "PP"], cat: "education",
         title: "เรียนฟรีตลอดชีวิต",
         desc: "เรียนฟรีถึง ป.เอก จบ ป.ตรี อายุ 18 เรียนฟรีจริงไม่มีค่าใช้จ่ายแอบแฝง อาหารกลางวันฟรี",
-        ref: "นโยบายการศึกษา", url: "#", verify: true
+        ref: "นโยบายการศึกษา", url: "#", verify: true,
+        pro: "ลดภาระครอบครัว เพิ่มโอกาสการศึกษา", con: "งบการศึกษาบานปลาย คุณภาพอาจไม่ดีขึ้น"
     },
     {
         id: 903, supporters: ["PP", "UTN"], cat: "education",
@@ -158,19 +160,22 @@ export const POLICIES = [
         id: 906, supporters: ["UTN", "PCC", "TST", "SET", "PPRP"], cat: "economy",
         title: "ลดค่าพลังงานทันที",
         desc: "รื้อโครงสร้างราคาพลังงาน ลดค่าไฟไม่เกิน 3.50 บาท ลดราคาน้ำมัน ลดต้นทุนค่าครองชีพ",
-        ref: "นโยบายพลังงาน", url: "#", verify: true
+        ref: "นโยบายพลังงาน", url: "#", verify: true,
+        pro: "ลดค่าครองชีพทันที ลดต้นทุนการผลิต", con: "กระทบผลกำไร ปตท. อาจลดรายได้ภาครัฐ"
     },
     {
         id: 907, supporters: ["PTP", "DEM"], cat: "economy",
         title: "ประกันรายได้เกษตรกร",
         desc: "ประกันกำไรเกษตรกร 30% และจ่ายส่วนต่างราคาพืชผล 5 ชนิดตรงเข้าบัญชี",
-        ref: "นโยบายเกษตร", url: "#", verify: true
+        ref: "นโยบายเกษตร", url: "#", verify: true,
+        pro: "เกษตรกรมีรายได้แน่นอน ลดความเสี่ยง", con: "ใช้งบอุดหนุนสูง ไม่ช่วยปรับโครงสร้างเกษตร"
     },
     {
         id: 908, supporters: ["TST", "DEM", "SET"], cat: "economy",
         title: "กองทุน SME ดอกเบี้ยต่ำ",
         desc: "สนับสนุน SME ด้วยสินเชื่อดอกเบี้ยต่ำ แต้มต่อจัดซื้อภาครัฐ ลดกฎระเบียบ",
-        ref: "นโยบายเศรษฐกิจ", url: "#", verify: true
+        ref: "นโยบายเศรษฐกิจ", url: "#", verify: true,
+        pro: "SME เข้าถึงทุนง่ายขึ้น สร้างงาน", con: "เสี่ยง NPL สูง ต้องบริหารกองทุนดี"
     },
     {
         id: 909, supporters: ["DEM", "PPRP"], cat: "economy",
@@ -183,20 +188,23 @@ export const POLICIES = [
         id: 910, supporters: ["PTP", "PP", "DEM", "TST"], cat: "social",
         title: "สิทธิความเท่าเทียมทางเพศ",
         desc: "สมรสเท่าเทียม รับรองอัตลักษณ์ทางเพศ ขจัดเลือกปฏิบัติ จัดสรรงบคำนึงถึงมิติทางเพศ",
-        ref: "เวที Pride Vote", url: "#", verify: true
+        ref: "เวที Pride Vote", url: "#", verify: true,
+        pro: "สร้างความเท่าเทียม ดึงดูด Pink Economy", con: "อาจขัดกับค่านิยมบางกลุ่ม ใช้เวลาปรับตัว"
     },
     {
         id: 911, supporters: ["TST", "PPRP"], cat: "social",
         title: "บำนาญและเบี้ยผู้สูงอายุ",
         desc: "ให้ผู้สูงอายุเดือนละ 3,000 บาท พร้อมระบบขั้นบันไดตามอายุ",
-        ref: "นโยบายสังคม", url: "#", verify: true
+        ref: "นโยบายสังคม", url: "#", verify: true,
+        pro: "ดูแลผู้สูงอายุครอบคลุม ลดภาระลูกหลาน", con: "ใช้งบสูงมากในสังคมสูงวัย อาจไม่ยั่งยืน"
     },
     // Politics
     {
         id: 912, supporters: ["UTN", "DEM", "SRT", "PPRP"], cat: "politics",
         title: "ปราบทุจริตเด็ดขาด",
         desc: "เพิ่มโทษทุจริต เปิดเผยข้อมูลจัดซื้อจัดจ้าง ยึดทรัพย์ถาวร ปราบมาเฟียข้ามชาติ",
-        ref: "นโยบายปราบโกง", url: "#", verify: true
+        ref: "นโยบายปราบโกง", url: "#", verify: true,
+        pro: "สร้างความโปร่งใส เพิ่มความเชื่อมั่นนักลงทุน", con: "ต้องปฏิรูปทั้งระบบ อาจถูกต่อต้านจากผู้มีอำนาจ"
     },
     {
         id: 913, supporters: ["UTN", "TST"], cat: "politics",
@@ -209,25 +217,29 @@ export const POLICIES = [
         id: 914, supporters: ["PP", "SRT"], cat: "security",
         title: "ปฏิรูปกองทัพ ยกเลิกเกณฑ์ทหาร",
         desc: "เปลี่ยนเป็นระบบสมัครใจ ลดจำนวนนายพล ลดงบกลาโหม สร้างทหารอาชีพ",
-        ref: "นโยบายกองทัพ", url: "#", verify: true
+        ref: "นโยบายกองทัพ", url: "#", verify: true,
+        pro: "สร้างทหารอาชีพมืออาชีพ ลดงบไม่จำเป็น", con: "กองทัพต่อต้านสูง อาจกระทบความมั่นคง"
     },
     // Environment
     {
         id: 915, supporters: ["PTP", "DEM"], cat: "environment",
         title: "พ.ร.บ.อากาศสะอาด",
         desc: "ผลักดันกฎหมายอากาศสะอาดฉบับบูรณาการ บังคับใช้มาตรฐานมลพิษ คืนสิทธิในการหายใจ",
-        ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: true
+        ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: true,
+        pro: "แก้ปัญหา PM2.5 อย่างเป็นระบบ", con: "กระทบอุตสาหกรรม ต้นทุนการปรับตัวสูง"
     },
     {
         id: 916, supporters: ["PTP", "PP", "OTH"], cat: "environment",
         title: "Net Zero และ Carbon Credit",
         desc: "มุ่งสู่ความเป็นกลางทางคาร์บอน กำหนดเพดานการปล่อยก๊าซ ผลักดันศูนย์ซื้อขาย Carbon Credit",
-        ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: true
+        ref: "นโยบายสิ่งแวดล้อม", url: "#", verify: true,
+        pro: "ดึงดูดการลงทุนสีเขียว สร้างรายได้จาก Carbon Credit", con: "ต้นทุนเปลี่ยนผ่านสูง กระทบภาคพลังงานเดิม"
     },
     {
         id: 917, supporters: ["UTN", "BJT"], cat: "environment",
         title: "โซลาร์เซลล์เสรี",
         desc: "ปลดล็อกให้ประชาชนผลิตไฟฟ้าขายเข้าระบบได้จริง ติดตั้งโซล่าเซลล์ทุกหลังคาเรือน",
-        ref: "นโยบายพลังงาน", url: "#", verify: true
+        ref: "นโยบายพลังงาน", url: "#", verify: true,
+        pro: "ลดค่าไฟ สร้างรายได้จากการขายไฟ", con: "ต้องลงทุนเริ่มต้น ระบบสายส่งอาจไม่รองรับ"
     },
 ];
