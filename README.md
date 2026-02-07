@@ -24,14 +24,67 @@ This game is **Part 2** of the Thai Election 2569 series:
 | **Introduction Screen** | Developer credits, clean gradient background, poll reference links (NIDA/Dusit), public stats view |
 | **5-Step Progress Indicator** | Clickable visual tracker with backward navigation, reshuffle counter for cabinet |
 | **Coalition Building** | Form government from 500 MPs across 11 parties, sorted by seats descending, cleaner party cards |
-| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, 17 grouped similar policies |
-| **Cabinet Allocation** | Assign 14 ministries + PM, quick actions (Auto-assign, PM party, Clear), 2 reshuffle limit |
-| **AI-Powered Political Chat** | 1 question limit, 12 suggested questions, sequential streaming (PM → Opposition), government spokesperson branding |
+| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, 17 grouped similar policies, **policy helper with pro/con** |
+| **Cabinet Allocation** | Assign 14 ministries + PM, quick actions (จัด ครม. ตามโควตา สส., PM party, Clear), 2 reshuffle limit |
+| **AI-Powered Political Chat** | 1 question limit, 12 suggested questions, sequential streaming (PM → Opposition), **"ประชาชนถามนายก" framing** |
 | **Emoji Confetti** | Party-specific emoji symbols (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) celebration |
-| **Results & Scoring** | 100-point score across 4 categories, dynamic commentary |
+| **Sound Effects** | Web Audio API (0KB) sounds for select, deselect, success, transition, fanfare + mute toggle |
+| **Results & Scoring** | 100-point score across **5 categories** (coalition, economy, social, security, cabinet) + **balance bonus**, dynamic commentary |
 | **Screenshot/Share** | html2canvas integration with Web Share API and download fallback |
 | **Aggregate Stats** | Public leaderboards showing PM distribution, score averages |
 | **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
+
+## What's New in v0.7.0
+
+**Major Update: Scoring Overhaul, Sound Effects, Policy Helper, Story Framing**
+
+### New Scoring System (100 Points Total)
+| Category | Points | Calculation |
+|----------|--------|-------------|
+| เสถียรภาพรัฐบาล | 30 | Margin above 250 seats (harder curve: /150) |
+| นโยบาย: เศรษฐกิจ | 15 | Economy policies selected / total available |
+| นโยบาย: สังคม | 15 | Social + Education policies / total available |
+| นโยบาย: ความมั่นคง | 15 | Security + Environment + Politics policies / total available |
+| ครม. ตรงกับจุดแข็งพรรค | 20 | Expertise matches / 14 ministries |
+| **Bonus: ดุลยภาพนโยบาย** | **+5** | All 3 dimensions have ≥1 policy |
+
+### Harder Grading Curve
+- **A+**: 92+ | **A**: 82+ | **B+**: 72+ | **B**: 62+ | **C+**: 52+ | **C**: 42+ | **D**: 32+ | **F**: <32
+
+### Sound Effects (Web Audio API, 0KB)
+- Five tone-based sound effects: select, deselect, success, transition, fanfare
+- Mute toggle (Volume2/VolumeX icon) in header
+- Persisted via localStorage
+- No external audio files needed
+
+### Policy Helper: "ขอตัวช่วย"
+- Toggle button per policy category
+- Shows up to 5 recommended policies with pros/cons
+- Static pro/con data for ~20 key policies (grouped + individual)
+- Helps users understand trade-offs
+
+### Chat Step Overhaul: "ประชาชนถามนายก"
+- New title and framing: User switches from coalition leader → citizen
+- Role explanation box: "สลับบทบาท: ตอนนี้คุณเปลี่ยนจากผู้จัดตั้งรัฐบาล เป็นประชาชน"
+- Greeting: "สวัสดีครับ ขณะนี้ท่านนายกรัฐมนตรีพร้อมรับฟังเสียงประชาชนแล้ว"
+
+### AI Prompt Improvements
+- max_tokens increased: 500 → 700 (prevents truncation)
+- "ตอบให้จบประโยค ห้ามตัดกลางประโยค" instruction
+- "ใช้ภาษาแบบผู้นำที่มีความเป็นมนุษย์ ไม่ใช่ข้อความราชการ"
+
+### Cabinet Label Updates
+- "Auto-assign" → "จัด ครม. ตามโควตา สส."
+- "ตั้งค่าอัตโนมาติ" → "จัดแบบเร็ว"
+
+### Story/Narrative Framing
+- Intro tagline: "คุณคือพรรคร่วมรัฐบาล ที่มีเสียงมาจากประชาชน"
+- Step 2 heading: "สิ่งที่อยากให้ทำใน 100 วันแรก"
+- Header subtitle: "คุณคือพรรคร่วมรัฐบาล ที่มีเสียงมาจากประชาชน"
+
+### Database Schema Updated
+- New fields: `score_economy`, `score_social`, `score_security`, `score_balance_bonus`
+- Removed: `score_diversity`, `score_engagement`
 
 ## What's New in v0.6.0
 
@@ -303,14 +356,18 @@ Step 5: Results & Scoring
 
 ## Scoring System
 
-The game evaluates your government across 4 categories (100 points total):
+The game evaluates your government across 5 categories (100 points total):
 
 | Category | Max Points | Formula |
 |----------|-----------|---------|
-| เสถียรภาพรัฐบาล (Coalition Stability) | 25 | Margin above 250 seats (capped at 100 extra) |
-| นโยบายครอบคลุมทุกมิติ (Policy Diversity) | 25 | Unique categories covered / 6 total categories |
-| ครม. ตรงกับจุดแข็งพรรค (Cabinet Expertise) | 25 | Party has relevant policy expertise / 14 ministries |
-| ถามคำถามสำคัญ (Engagement) | 25 | Binary: 25 if asked question, 0 if not |
+| เสถียรภาพรัฐบาล (Coalition Stability) | 30 | Margin above 250 seats (harder curve: /150) |
+| นโยบาย: เศรษฐกิจ (Economy Policies) | 15 | Economy policies selected / total economy available |
+| นโยบาย: สังคม (Social Policies) | 15 | Social + Education policies / total available |
+| นโยบาย: ความมั่นคง (Security Policies) | 15 | Security + Environment + Politics policies / total available |
+| ครม. ตรงกับจุดแข็งพรรค (Cabinet Expertise) | 20 | Expertise matches / 14 ministries |
+| **Bonus: ดุลยภาพนโยบาย** | **+5** | All 3 dimensions have ≥1 policy |
+
+**Grading:** A+(92+) A(82+) B+(72+) B(62+) C+(52+) C(42+) D(32+) F(<32)
 
 ## AI Chat System
 
@@ -361,9 +418,11 @@ CREATE TABLE game_sessions (
   chat_count INTEGER DEFAULT 0,
   score_total INTEGER,
   score_coalition INTEGER,
-  score_diversity INTEGER,
+  score_economy INTEGER,
+  score_social INTEGER,
+  score_security INTEGER,
   score_cabinet INTEGER,
-  score_engagement INTEGER,
+  score_balance_bonus INTEGER,
   grade TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
