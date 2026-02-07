@@ -292,10 +292,10 @@ export default function PMSimulator() {
         const policyCount = selectedPolicies.size;
         const budgetScore = policyCount <= 5 ? 15 : policyCount <= 10 ? 12 : policyCount <= 15 ? 9 : policyCount <= 20 ? 6 : policyCount <= 25 ? 3 : 0;
 
-        // 5. Balance bonus (+5) - all 3 dimensions have at least 1 policy
-        const hasEconomy = economyPolicies.length > 0;
-        const hasSocial = socialPolicies.length > 0;
-        const hasSecurity = securityPolicies.length > 0;
+        // 5. Balance bonus (+5) - all 3 dimensions have at least 2 policies each
+        const hasEconomy = economyPolicies.length >= 2;
+        const hasSocial = socialPolicies.length >= 2;
+        const hasSecurity = securityPolicies.length >= 2;
         const balanceBonus = (hasEconomy && hasSocial && hasSecurity) ? 5 : 0;
 
         const total = coalitionScore + economyScore + socialScore + securityScore + alignmentScore + budgetScore + balanceBonus;
@@ -343,7 +343,7 @@ export default function PMSimulator() {
         else if (s.budget >= 6) comments.push('งบประมาณพอไหว แต่นโยบายค่อนข้างมาก');
         else comments.push('เลือกนโยบายมากเกินไป อาจมีปัญหาด้านงบประมาณ');
 
-        if (s.balanceBonus > 0) comments.push('ได้โบนัสดุลยภาพนโยบาย! ครบทั้ง 3 มิติ');
+        if (s.balanceBonus > 0) comments.push('ได้โบนัสดุลยภาพนโยบาย! แต่ละมิติมีอย่างน้อย 2 นโยบาย');
 
         return comments;
     };
@@ -757,9 +757,9 @@ export default function PMSimulator() {
                         </button>
 
                         <div className="flex items-center gap-2 text-sm font-bold text-slate-600">
-                            <span>หมวด {policyCategoryIndex + 1}/{activeCategories.length}</span>
+                            <span>หมวด {policyCategoryIndex + 1}/{activeCategories.length} {policyCategoryIndex > 0 && '✅'}</span>
                             <span className="text-slate-300">|</span>
-                            <span className="text-blue-600">เลือกแล้ว {selectedPolicies.size} นโยบาย</span>
+                            <span className="text-blue-600">เลือกแล้ว {selectedPolicies.size} นโยบาย {selectedInCat > 0 && '⭐'}</span>
                         </div>
 
                         <div className="flex items-center gap-2 flex-shrink-0">
@@ -774,6 +774,7 @@ export default function PMSimulator() {
                             <button
                                 onClick={() => {
                                     if (policyCategoryIndex < activeCategories.length - 1) {
+                                        playSuccess();
                                         setPolicyCategoryIndex(policyCategoryIndex + 1);
                                         playTransition();
                                     } else {
@@ -783,7 +784,7 @@ export default function PMSimulator() {
                                 }}
                                 className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow transition flex items-center gap-1 text-sm"
                             >
-                                {policyCategoryIndex < activeCategories.length - 1 ? 'ถัดไป' : 'เลือกเสร็จ'} <ChevronRight size={16} />
+                                {policyCategoryIndex < activeCategories.length - 1 ? 'ถัดไป ✨' : 'เลือกเสร็จ 🎉'} <ChevronRight size={16} />
                             </button>
                         </div>
                     </div>
@@ -839,65 +840,74 @@ export default function PMSimulator() {
         );
     };
 
-    // --- CABINET MAKER (Step 3) ---
-    const renderCabinetMaker = () => (
-        <div className="animate-fade-in">
-            <div className="flex justify-between items-center mb-6">
-                <button onClick={() => { setPolicyCategoryIndex(activeCategories.length - 1); setStep(2); }} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
-                    <RotateCcw size={16} /> ย้อนกลับไปเลือกนโยบาย
-                </button>
-                <h2 className="text-xl font-bold text-slate-800">เสนอชื่อนายก และจัดสรรโควตา ครม.</h2>
-            </div>
+    // --- PM NOMINATION (Step 3) ---
+    const renderPMNomination = () => {
+        const pmPartyId = cabinet['PM'] || coalition[0];
+        const pmParty = pmPartyId ? PARTIES.find(p => p.id === pmPartyId) : null;
 
-            {/* Quick Actions */}
-            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6">
-                <div className="text-sm font-bold text-slate-600 mb-3 flex items-center gap-2"><Zap size={16} /> จัดแบบเร็ว</div>
-                <div className="flex flex-wrap gap-2">
-                    <button onClick={autoAssignCabinet} className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white rounded-lg text-sm font-bold transition shadow-sm">
-                        <Zap size={16} /> จัด ครม. ตามโควตา สส.
+        return (
+            <div className="animate-fade-in">
+                <div className="flex justify-between items-center mb-6">
+                    <button onClick={() => { setPolicyCategoryIndex(activeCategories.length - 1); setStep(2); }} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
+                        <RotateCcw size={16} /> ย้อนกลับไปเลือกนโยบาย
                     </button>
-                    <button onClick={assignAllToPmParty} className="flex items-center gap-2 px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg text-sm font-bold transition shadow-sm">
-                        <Crown size={16} /> พรรคนายกทุกกระทรวง
-                    </button>
-                    <button onClick={clearAllAssignments} className="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg text-sm font-bold transition">
-                        <Trash2 size={16} /> ล้างทั้งหมด
+                    <h2 className="text-xl font-bold text-slate-800">เสนอชื่อนายก</h2>
+                </div>
+
+                <div className="bg-white p-8 rounded-xl shadow-lg border border-slate-200 mb-6">
+                    <h3 className="text-lg font-bold text-slate-800 mb-4">เลือกผู้ถูกเสนอชื่อเป็นนายกรัฐมนตรี</h3>
+                    <p className="text-sm text-slate-500 mb-6">เลือกหนึ่งท่านจากพรรคร่วมรัฐบาล เพื่อเสนอเข้าสภา</p>
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        {coalition.map(partyId => {
+                            const party = PARTIES.find(p => p.id === partyId);
+                            if (!party) return null;
+                            const isSelected = pmPartyId === partyId;
+                            const ps = PARTY_STYLES[partyId] || {};
+                            return (
+                                <button
+                                    key={partyId}
+                                    onClick={() => setCabinet({ ...cabinet, 'PM': partyId })}
+                                    className={`choice-card-enhanced p-6 rounded-xl border-2 transition-all ${
+                                        isSelected
+                                            ? `${ps.border} ${ps.bg} ${ps.glow} shadow-lg`
+                                            : 'border-slate-200 bg-white hover:border-slate-300'
+                                    }`}
+                                >
+                                    <div className="flex flex-col items-center text-center gap-2">
+                                        {isSelected && <span className="text-2xl animate-check-pop"><Check className="text-blue-600" size={24} /></span>}
+                                        <div className={`font-bold text-base ${ps.text}`}>{party.name}</div>
+                                        <div className="text-sm text-slate-500">{party.seats} ที่นั่ง</div>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {pmParty && (
+                    <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6 mb-6">
+                        <div className="flex items-center gap-3 mb-2">
+                            <div className={`w-4 h-4 rounded-full ${pmParty.color}`} />
+                            <h3 className="font-bold text-slate-800">ผู้ถูกเสนอชื่อเป็นนายก</h3>
+                        </div>
+                        <p className="text-slate-600 text-sm">{pmParty.name} - {pmParty.seats} ที่นั่ง</p>
+                        <p className="text-slate-500 text-xs mt-2">{pmParty.policies?.general || ''}</p>
+                    </div>
+                )}
+
+                <div className="flex justify-end">
+                    <button
+                        onClick={() => { playSuccess(); setStep(4); }}
+                        disabled={!pmPartyId}
+                        className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2"
+                    >
+                        เข้าสู่สภา <ChevronRight />
                     </button>
                 </div>
             </div>
-
-            {/* Ministry Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-                {MINISTRIES.map(min => {
-                    const assignedParty = cabinet[min.id] ? PARTIES.find(p => p.id === cabinet[min.id]) : null;
-                    return (
-                        <div key={min.id} className={`bg-white p-4 rounded-xl shadow-sm border-2 flex items-center gap-4 transition-all ${assignedParty ? 'border-slate-200' : 'border-dashed border-slate-300'}`}>
-                            <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${assignedParty ? assignedParty.color + ' text-white' : 'bg-slate-100 text-slate-500'} transition-colors`}>
-                                <min.icon size={24} />
-                            </div>
-                            <div className="flex-grow">
-                                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{min.name}</label>
-                                <select className="w-full p-2 bg-slate-50 border border-slate-300 rounded-lg font-bold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    value={cabinet[min.id] || ''} onChange={(e) => assignMinister(min.id, e.target.value)}>
-                                    <option value="" disabled>-- เลือกพรรค --</option>
-                                    {coalition.map(pId => {
-                                        const party = PARTIES.find(p => p.id === pId);
-                                        return <option key={pId} value={pId}>{party.name} ({party.seats})</option>;
-                                    })}
-                                </select>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
-
-            <div className="flex justify-end">
-                <button onClick={() => { playSuccess(); setStep(4); }} disabled={Object.keys(cabinet).length < MINISTRIES.length}
-                    className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
-                    เข้าสู่สภา เสนอชื่อนายก <ChevronRight />
-                </button>
-            </div>
-        </div>
-    );
+        );
+    };
 
     // Shuffled suggested questions (memoized once)
     const shuffledQuestions = useMemo(() => shuffleArray([
@@ -908,6 +918,9 @@ export default function PMSimulator() {
 
     // --- PARLIAMENTARY PM VOTE (Step 4) - "แสดงวิสัยทัศน์ในสภา" ---
     const renderGovChat = () => {
+        const pmPartyId = cabinet['PM'] || coalition[0];
+        const pmParty = PARTIES.find(p => p.id === pmPartyId);
+
         return (
             <div className="animate-fade-in h-[600px] flex flex-col">
                 <div className="flex justify-between items-center mb-4">
@@ -919,7 +932,7 @@ export default function PMSimulator() {
 
                 {/* Role explanation */}
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-700">
-                    <strong>ในสภา:</strong> ผู้เสนอตัวเป็นนายกรัฐมนตรีกำลังแสดงวิสัยทัศน์ต่อสมาชิกสภาผู้แทนราษฎร สส. สามารถซักถามได้ 1 คำถาม ก่อนลงมติ
+                    <strong>ประธานสภา:</strong> สวัสดีครับ เชิญ ผู้ถูกเสนอชื่อเป็นนายกรัฐมนตรีจากพรรค{pmParty?.name} แสดงวิสัยทัศน์และตอบคำถามจากสมาชิกสภา
                 </div>
 
                 {/* Chat Area */}
@@ -1158,7 +1171,7 @@ export default function PMSimulator() {
                                         <span className="text-emerald-700 font-bold">โบนัส: ดุลยภาพนโยบาย</span>
                                         <span className="font-bold text-emerald-700">+{score.balanceBonus}</span>
                                     </div>
-                                    <p className="text-[10px] text-emerald-600 mt-0.5">ครบทั้ง 3 มิติ (เศรษฐกิจ + สังคม + ความมั่นคง)</p>
+                                    <p className="text-[10px] text-emerald-600 mt-0.5">แต่ละมิติมี 2+ นโยบาย (เศรษฐกิจ + สังคม + ความมั่นคง)</p>
                                 </div>
                             )}
                         </div>
@@ -1192,7 +1205,8 @@ export default function PMSimulator() {
 
                     {/* Branding */}
                     <div className="text-center mt-4 pt-4 border-t border-slate-100">
-                        <p className="text-xs text-slate-300">Sim-Government: Thailand 2569 | thalay.eu</p>
+                        <p className="text-xs text-slate-400 font-bold">simgov2569.autobahn.bot</p>
+                        <p className="text-xs text-slate-300 mt-1">Sim-Government: Thailand 2569</p>
                     </div>
                 </div>
 
@@ -1236,7 +1250,7 @@ export default function PMSimulator() {
                     {renderStepIndicator()}
                     {step === 1 && renderCoalitionBuilder()}
                     {step === 2 && renderPolicySelector()}
-                    {step === 3 && renderCabinetMaker()}
+                    {step === 3 && renderPMNomination()}
                     {step === 4 && renderGovChat()}
                     {step === 5 && !showResults && renderResults()}
                     {step === 5 && showResults && renderAggregateStats()}
