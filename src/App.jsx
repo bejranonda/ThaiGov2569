@@ -254,18 +254,18 @@ export default function PMSimulator() {
 
     // --- New Scoring System (v0.8.0) ---
     const calculateScore = () => {
-        // 1. Coalition stability (25 pts) - Rewarded for balanced government (55-60%)
-        // 50% + 1 (251) = 0 pts, 55-60% (275-300) = 25 pts (optimal), 75%+ (375+) = 0 pts (dangerous)
+        // 1. Coalition stability (25 pts) - Rewarded for balanced government (55-65%)
+        // 50% + 1 (251) = 0 pts, 55-65% (275-325) = 25 pts (optimal), 75%+ (375+) = 0 pts (dangerous)
         const percentage = (totalCoalitionSeats / 500) * 100;
         let coalitionScore = 0;
 
         if (percentage >= 50.2) {
-            if (percentage <= 60) {
-                // Sweet spot (275-300 seats): Full points, peaks at 55-60%
-                coalitionScore = Math.round(25 * Math.min(1, (percentage - 50.2) / 9.8));
+            if (percentage <= 65) {
+                // Sweet spot (275-325 seats): Full points, peaks at 55-65%
+                coalitionScore = Math.round(25 * Math.min(1, (percentage - 50.2) / 14.8));
             } else if (percentage < 75) {
-                // Over-qualified (60-75%): Reduce points linearly
-                coalitionScore = Math.max(0, Math.round(25 - ((percentage - 60) / 15) * 25));
+                // Over-qualified (65-75%): Reduce points linearly
+                coalitionScore = Math.max(0, Math.round(25 - ((percentage - 65) / 10) * 25));
             } else {
                 // Dangerous (75%+): Penalized heavily
                 coalitionScore = 0;
@@ -341,11 +341,11 @@ export default function PMSimulator() {
             comments.push('❌ ไม่มีเสียงข้างมาก - รัฐบาลไม่สามารถก่อตั้งได้');
         } else if (percentage <= 55) {
             comments.push('⚠️ ปริ่มน้ำ (50-55%) - บริหารยาก เสี่ยงหากมีคนถอนตัว');
-        } else if (percentage <= 60) {
-            comments.push('✅ เหมาะสมที่สุด (55-60%) - เสถียรพอที่ผลักดันนโยบาย แต่ฝ่ายค้านแข็งแกร่ง');
+        } else if (percentage <= 65) {
+            comments.push('✅ เหมาะสมที่สุด (55-65%) - เสถียรพอที่ผลักดันนโยบาย แต่ฝ่ายค้านแข็งแกร่ง');
             if (s.coalition > 0) comments.push('นี่คือความสมดุลที่ดีที่สุดสำหรับประชาธิปไตย');
         } else if (percentage < 75) {
-            comments.push('⚠️ เกินพอ (60-75%) - เลยไปจากจุดสมดุลที่ดี');
+            comments.push('⚠️ เกินพอ (65-75%) - เลยไปจากจุดสมดุลที่ดี');
         } else {
             comments.push('❌ อันตราย (75%+) - สามารถแก้รัฐธรรมนูญได้เพียงลำพัง คุกคามประชาธิปไตย');
         }
