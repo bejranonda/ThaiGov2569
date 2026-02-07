@@ -94,7 +94,7 @@ const STEP_LABELS = [
     { icon: Users, label: 'รวมเสียง' },
     { icon: FileText, label: '100 วันแรก' },
     { icon: Briefcase, label: 'ครม.' },
-    { icon: MessageSquare, label: 'ถามนายก' },
+    { icon: MessageSquare, label: 'โหวตนายก' },
     { icon: BarChart3, label: 'ผลลัพธ์' },
 ];
 
@@ -134,7 +134,7 @@ export default function PMSimulator() {
     const [coalition, setCoalition] = useState([]);
     const [cabinet, setCabinet] = useState({});
     const [chatLog, setChatHistory] = useState([
-        { sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับ ขณะนี้ท่านนายกรัฐมนตรีพร้อมรับฟังเสียงประชาชนแล้ว ท่านสามารถถามคำถามได้ 1 ข้อครับ' }
+        { sender: 'ประธานสภา', text: 'สวัสดีครับ ขณะนี้เปิดให้ผู้เสนอตัวเป็นนายกรัฐมนตรีแสดงวิสัยทัศน์ต่อสภา สมาชิกสภาสามารถซักถามได้ 1 คำถามครับ' }
     ]);
     const [inputMessage, setInputMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
@@ -247,18 +247,18 @@ export default function PMSimulator() {
     const navigateToStep = (targetStep) => {
         if (targetStep >= step) return;
         if (targetStep === 3 && step >= 4) {
-            if (reshuffleCount >= 2) return;
+            if (reshuffleCount >= 1) return;
             setReshuffleCount(prev => prev + 1);
         }
         playTransition();
         setStep(targetStep);
     };
 
-    // --- New Scoring System ---
+    // --- New Scoring System (v0.8.0) ---
     const calculateScore = () => {
-        // 1. Coalition stability (30 pts) - harder curve
+        // 1. Coalition stability (25 pts)
         const margin = Math.max(0, totalCoalitionSeats - MAJORITY_THRESHOLD);
-        const coalitionScore = Math.min(30, Math.round((margin / 150) * 30));
+        const coalitionScore = Math.min(25, Math.round((margin / 150) * 25));
 
         // 2. Policy dimensions
         const selectedPolicyObjects = POLICIES.filter(p => selectedPolicies.has(p.id));
@@ -278,24 +278,27 @@ export default function PMSimulator() {
         const totalSecurity = POLICIES.filter(p => (p.cat === 'security' || p.cat === 'environment' || p.cat === 'politics') && !GROUPED_POLICY_IDS.includes(p.id)).length;
         const securityScore = Math.min(15, Math.round((securityPolicies.length / Math.max(1, totalSecurity)) * 15));
 
-        // 3. Cabinet expertise (20 pts)
-        let expertiseMatches = 0;
-        MINISTRIES.forEach(min => {
-            const assignedPartyId = cabinet[min.id];
-            if (assignedPartyId) {
-                const party = PARTIES.find(p => p.id === assignedPartyId);
-                if (party && party.policies && party.policies[min.key]) expertiseMatches++;
-            }
+        // 3. Policy-party alignment (15 pts) - policies from coalition parties
+        let alignedCount = 0;
+        selectedPolicyObjects.forEach(p => {
+            if (p.party && coalition.includes(p.party)) { alignedCount++; }
+            else if (p.supporters && p.supporters.some(s => coalition.includes(s))) { alignedCount++; }
         });
-        const cabinetScore = Math.min(20, Math.round((expertiseMatches / MINISTRIES.length) * 20));
+        const alignmentScore = selectedPolicyObjects.length > 0
+            ? Math.min(15, Math.round((alignedCount / selectedPolicyObjects.length) * 15))
+            : 0;
 
-        // 4. Balance bonus (+5) - all 3 dimensions have at least 1 policy
+        // 4. Budget efficiency (15 pts) - fewer policies = more disciplined
+        const policyCount = selectedPolicies.size;
+        const budgetScore = policyCount <= 5 ? 15 : policyCount <= 10 ? 12 : policyCount <= 15 ? 9 : policyCount <= 20 ? 6 : policyCount <= 25 ? 3 : 0;
+
+        // 5. Balance bonus (+5) - all 3 dimensions have at least 1 policy
         const hasEconomy = economyPolicies.length > 0;
         const hasSocial = socialPolicies.length > 0;
         const hasSecurity = securityPolicies.length > 0;
         const balanceBonus = (hasEconomy && hasSocial && hasSecurity) ? 5 : 0;
 
-        const total = coalitionScore + economyScore + socialScore + securityScore + cabinetScore + balanceBonus;
+        const total = coalitionScore + economyScore + socialScore + securityScore + alignmentScore + budgetScore + balanceBonus;
 
         // Harder grading curve
         const grade = total >= 92 ? 'A+' : total >= 82 ? 'A' : total >= 72 ? 'B+' : total >= 62 ? 'B' : total >= 52 ? 'C+' : total >= 42 ? 'C' : total >= 32 ? 'D' : 'F';
@@ -306,7 +309,8 @@ export default function PMSimulator() {
             economy: economyScore,
             social: socialScore,
             security: securityScore,
-            cabinet: cabinetScore,
+            alignment: alignmentScore,
+            budget: budgetScore,
             balanceBonus,
         };
     };
@@ -314,8 +318,8 @@ export default function PMSimulator() {
     // Dynamic commentary
     const getCommentary = (s) => {
         const comments = [];
-        if (s.coalition >= 25) comments.push('รัฐบาลมีฐานเสียงที่มั่นคงมาก');
-        else if (s.coalition >= 15) comments.push('เสียงข้างมากพอสมควร แต่ยังอาจมีปัญหา');
+        if (s.coalition >= 20) comments.push('รัฐบาลมีฐานเสียงที่มั่นคงมาก');
+        else if (s.coalition >= 12) comments.push('เสียงข้างมากพอสมควร แต่ยังอาจมีปัญหา');
         else if (s.coalition >= 5) comments.push('รัฐบาลเสียงปริ่มน้ำ อาจมีปัญหาในสภา');
         else comments.push('เสียงข้างมากน้อยมาก อาจถูกอภิปรายไม่ไว้วางใจได้ง่าย');
 
@@ -331,8 +335,13 @@ export default function PMSimulator() {
         else if (s.security >= 6) comments.push('ด้านความมั่นคงยังพอมีแต่ไม่ครบ');
         else comments.push('ขาดนโยบายด้านความมั่นคง สิ่งแวดล้อม หรือการเมือง');
 
-        if (s.cabinet >= 16) comments.push('ครม. ตรงกับจุดแข็งของแต่ละพรรค');
-        else comments.push('บางกระทรวงอาจไม่ตรงกับความเชี่ยวชาญพรรค');
+        if (s.alignment >= 12) comments.push('นโยบายตรงกับจุดแข็งพรรคร่วมรัฐบาล');
+        else if (s.alignment >= 6) comments.push('นโยบายบางส่วนไม่ตรงกับจุดแข็งพรรคร่วม');
+        else comments.push('นโยบายส่วนใหญ่ไม่ตรงกับพรรคร่วมรัฐบาล');
+
+        if (s.budget >= 12) comments.push('งบประมาณมีวินัย เลือกนโยบายอย่างเน้นจุด');
+        else if (s.budget >= 6) comments.push('งบประมาณพอไหว แต่นโยบายค่อนข้างมาก');
+        else comments.push('เลือกนโยบายมากเกินไป อาจมีปัญหาด้านงบประมาณ');
 
         if (s.balanceBonus > 0) comments.push('ได้โบนัสดุลยภาพนโยบาย! ครบทั้ง 3 มิติ');
 
@@ -353,8 +362,8 @@ export default function PMSimulator() {
                     chat_count: chatLog.filter(m => m.sender === 'user').length,
                     score_total: scoreData.total, score_coalition: scoreData.coalition,
                     score_economy: scoreData.economy, score_social: scoreData.social,
-                    score_security: scoreData.security, score_cabinet: scoreData.cabinet,
-                    score_balance_bonus: scoreData.balanceBonus, grade: scoreData.grade,
+                    score_security: scoreData.security, score_alignment: scoreData.alignment,
+                    score_budget: scoreData.budget, score_balance_bonus: scoreData.balanceBonus, grade: scoreData.grade,
                 }),
             });
         } catch (err) { console.error('Failed to save session:', err); }
@@ -540,7 +549,7 @@ export default function PMSimulator() {
                 const stepNum = i + 1;
                 const isCompleted = step > stepNum;
                 const isActive = step === stepNum;
-                const isClickable = stepNum < step && !(stepNum === 3 && step >= 4 && reshuffleCount >= 2);
+                const isClickable = stepNum < step && !(stepNum === 3 && step >= 4 && reshuffleCount >= 1);
                 const Icon = s.icon;
                 return (
                     <React.Fragment key={i}>
@@ -590,8 +599,8 @@ export default function PMSimulator() {
                     <span className="text-2xl md:text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-indigo-500 to-purple-600 bg-[length:200%_auto] animate-text-gradient">2569</span>
                 </div>
 
-                <p className="text-slate-500 text-base md:text-lg font-medium mb-2 animate-slide-up stagger-3">คุณคือพรรคร่วมรัฐบาล ที่มีเสียงมาจากประชาชน</p>
-                <p className="text-slate-400 text-sm mb-6 animate-slide-up stagger-3">มาจัดตั้งรัฐบาลในฝัน เลือกนโยบาย 100 วันแรก แล้วถามนายกของคุณ</p>
+                <p className="text-slate-500 text-base md:text-lg font-medium mb-2 animate-slide-up stagger-3">คุณคือแกนนำจัดตั้งรัฐบาล</p>
+                <p className="text-slate-400 text-sm mb-6 animate-slide-up stagger-3">รวมเสียง เลือกนโยบาย แล้วเสนอนายกเข้าสภาเพื่อโหวต</p>
 
                 {/* Sequel Badge */}
                 <a href="https://thalay.eu/sim2569" target="_blank" rel="noopener noreferrer"
@@ -635,7 +644,7 @@ export default function PMSimulator() {
                         <span className="text-slate-300">|</span>
                         <a href="https://dusitpoll.dusit.ac.th/UPLOAD_FILES/POLL/2569/PS-2569-1769744270.pdf" target="_blank" rel="noopener noreferrer" className="hover:text-blue-500 underline">สวนดุสิตโพล (ธ.ค. 68)</a>
                     </div>
-                    <a href="https://github.com/bejranonda/ThaiGov2569" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-blue-500 transition-colors font-mono mt-2">v0.7.0</a>
+                    <a href="https://github.com/bejranonda/ThaiGov2569" target="_blank" rel="noopener noreferrer" className="text-slate-300 hover:text-blue-500 transition-colors font-mono mt-2">v0.8.0</a>
                 </div>
             </div>
         </div>
@@ -733,9 +742,7 @@ export default function PMSimulator() {
         const policiesInCat = shuffledPoliciesByCategory[currentCat.id] || [];
         const selectedInCat = policiesInCat.filter(p => selectedPolicies.has(p.id)).length;
         const helperVisible = showHelper[currentCat.id];
-
-        // Get policies with pro/con for helper
-        const policiesWithHelper = policiesInCat.filter(p => p.pro && p.con).slice(0, 5);
+        const hasHelperPolicies = policiesInCat.some(p => p.pro && p.con);
 
         return (
             <div className="animate-fade-in">
@@ -755,20 +762,30 @@ export default function PMSimulator() {
                             <span className="text-blue-600">เลือกแล้ว {selectedPolicies.size} นโยบาย</span>
                         </div>
 
-                        <button
-                            onClick={() => {
-                                if (policyCategoryIndex < activeCategories.length - 1) {
-                                    setPolicyCategoryIndex(policyCategoryIndex + 1);
-                                    playTransition();
-                                } else {
-                                    playSuccess();
-                                    setStep(3);
-                                }
-                            }}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow transition flex items-center gap-1 text-sm flex-shrink-0"
-                        >
-                            {policyCategoryIndex < activeCategories.length - 1 ? 'ถัดไป' : 'เลือกเสร็จ'} <ChevronRight size={16} />
-                        </button>
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            {hasHelperPolicies && (
+                                <button
+                                    onClick={() => setShowHelper(prev => ({ ...prev, [currentCat.id]: !prev[currentCat.id] }))}
+                                    className={`flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-bold transition-all ${helperVisible ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-slate-100 text-slate-500 hover:bg-slate-200 border border-slate-200'}`}
+                                >
+                                    <HelpCircle size={14} /> {helperVisible ? 'ซ่อน' : 'ตัวช่วย'}
+                                </button>
+                            )}
+                            <button
+                                onClick={() => {
+                                    if (policyCategoryIndex < activeCategories.length - 1) {
+                                        setPolicyCategoryIndex(policyCategoryIndex + 1);
+                                        playTransition();
+                                    } else {
+                                        playSuccess();
+                                        setStep(3);
+                                    }
+                                }}
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-bold shadow transition flex items-center gap-1 text-sm"
+                            >
+                                {policyCategoryIndex < activeCategories.length - 1 ? 'ถัดไป' : 'เลือกเสร็จ'} <ChevronRight size={16} />
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -790,41 +807,6 @@ export default function PMSimulator() {
                     <p className="text-sm text-slate-500 mt-1">หมวด: {currentCat.name} ({policiesInCat.length} นโยบาย | เลือกแล้ว {selectedInCat})</p>
                 </div>
 
-                {/* Helper toggle */}
-                {policiesWithHelper.length > 0 && (
-                    <div className="mb-4">
-                        <button
-                            onClick={() => setShowHelper(prev => ({ ...prev, [currentCat.id]: !prev[currentCat.id] }))}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${helperVisible ? 'bg-amber-100 text-amber-700 border border-amber-300' : 'bg-slate-100 text-slate-600 hover:bg-slate-200 border border-slate-200'}`}
-                        >
-                            <HelpCircle size={16} /> {helperVisible ? 'ซ่อนตัวช่วย' : 'ขอตัวช่วย'}
-                        </button>
-
-                        {helperVisible && (
-                            <div className="mt-3 p-4 bg-amber-50 border border-amber-200 rounded-xl animate-fade-in">
-                                <h3 className="font-bold text-amber-800 mb-3 text-sm">แนะนำนโยบายน่าสนใจในหมวดนี้:</h3>
-                                <div className="space-y-3">
-                                    {policiesWithHelper.map(p => (
-                                        <div key={p.id} className="bg-white rounded-lg p-3 border border-amber-100">
-                                            <div className="font-bold text-slate-800 text-sm mb-1">{p.title}</div>
-                                            <div className="flex gap-3 text-xs">
-                                                <div className="flex-1">
-                                                    <span className="text-emerald-600 font-bold">ข้อดี:</span>
-                                                    <span className="text-slate-600 ml-1">{p.pro}</span>
-                                                </div>
-                                                <div className="flex-1">
-                                                    <span className="text-red-500 font-bold">ข้อเสีย:</span>
-                                                    <span className="text-slate-600 ml-1">{p.con}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
-
                 {/* Policy cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     {policiesInCat.map(p => {
@@ -837,6 +819,18 @@ export default function PMSimulator() {
                                     {isSelected && <span className="animate-check-pop"><Check className="text-blue-600" size={20} /></span>}
                                 </div>
                                 <p className="text-sm text-slate-600">{p.desc}</p>
+                                {helperVisible && p.pro && p.con && (
+                                    <div className="mt-2 pt-2 border-t border-slate-200 flex gap-3 text-xs animate-fade-in" onClick={e => e.stopPropagation()}>
+                                        <div className="flex-1">
+                                            <span className="text-emerald-600 font-bold">ข้อดี:</span>
+                                            <span className="text-slate-600 ml-1">{p.pro}</span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <span className="text-red-500 font-bold">ข้อเสีย:</span>
+                                            <span className="text-slate-600 ml-1">{p.con}</span>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         );
                     })}
@@ -852,7 +846,7 @@ export default function PMSimulator() {
                 <button onClick={() => { setPolicyCategoryIndex(activeCategories.length - 1); setStep(2); }} className="text-slate-500 hover:text-blue-600 flex items-center gap-1 font-medium">
                     <RotateCcw size={16} /> ย้อนกลับไปเลือกนโยบาย
                 </button>
-                <h2 className="text-xl font-bold text-slate-800">จัดสรรโควตารัฐมนตรี</h2>
+                <h2 className="text-xl font-bold text-slate-800">เสนอชื่อนายก และจัดสรรโควตา ครม.</h2>
             </div>
 
             {/* Quick Actions */}
@@ -899,28 +893,33 @@ export default function PMSimulator() {
             <div className="flex justify-end">
                 <button onClick={() => { playSuccess(); setStep(4); }} disabled={Object.keys(cabinet).length < MINISTRIES.length}
                     className="bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white px-8 py-3 rounded-xl font-bold shadow-lg transition flex items-center gap-2">
-                    จัดตั้งรัฐบาลสำเร็จ! เข้าทำเนียบ <ChevronRight />
+                    เข้าสู่สภา เสนอชื่อนายก <ChevronRight />
                 </button>
             </div>
         </div>
     );
 
-    // --- GOVERNMENT CHAT (Step 4) - "ประชาชนถามนายก" ---
-    const renderGovChat = () => {
-        const allStreamed = Object.keys(streamingDone).length > 0 && Object.values(streamingDone).every(v => v);
+    // Shuffled suggested questions (memoized once)
+    const shuffledQuestions = useMemo(() => shuffleArray([
+        'จะแก้ปัญหาเศรษฐกิจยังไง', 'ขอลดค่าไฟหน่อย', 'ปราบยาเสพติดยังไง', 'การศึกษาจะดีขึ้นไหม',
+        'ค่าครองชีพแพงมาก', 'จะแก้ปัญหาน้ำท่วมยังไง', 'ทุจริตคอร์รัปชันจะหมดไปไหม', 'เมื่อไหร่จะแก้รัฐธรรมนูญ',
+        'จะปฏิรูปกองทัพไหม', 'PM 2.5 จะแก้ยังไง', 'หนี้ครัวเรือนสูง ช่วยได้ไหม', 'ต่างชาติจะลงทุนเพิ่มไหม',
+    ]), []);
 
+    // --- PARLIAMENTARY PM VOTE (Step 4) - "แสดงวิสัยทัศน์ในสภา" ---
+    const renderGovChat = () => {
         return (
             <div className="animate-fade-in h-[600px] flex flex-col">
                 <div className="flex justify-between items-center mb-4">
                     <div className="flex items-center gap-2">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                        <h2 className="text-lg font-bold text-slate-800">ประชาชนถามนายก</h2>
+                        <h2 className="text-lg font-bold text-slate-800">แสดงวิสัยทัศน์ในสภา</h2>
                     </div>
                 </div>
 
                 {/* Role explanation */}
                 <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 mb-4 text-xs text-blue-700">
-                    <strong>สลับบทบาท:</strong> ตอนนี้คุณเปลี่ยนจากผู้จัดตั้งรัฐบาล เป็น <strong>ประชาชน</strong> ที่ถามนายกฯ ของคุณเอง 1 คำถาม
+                    <strong>ในสภา:</strong> ผู้เสนอตัวเป็นนายกรัฐมนตรีกำลังแสดงวิสัยทัศน์ต่อสมาชิกสภาผู้แทนราษฎร สส. สามารถซักถามได้ 1 คำถาม ก่อนลงมติ
                 </div>
 
                 {/* Chat Area */}
@@ -942,10 +941,13 @@ export default function PMSimulator() {
                     ))}
                     {isTyping && (
                         <div className="flex justify-start mb-4 msg-enter-left">
-                            <div className="bg-white rounded-2xl p-4 rounded-bl-none border border-slate-200 flex gap-1.5 items-center">
-                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
-                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} />
-                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
+                            <div className="bg-white rounded-2xl p-4 rounded-bl-none border border-slate-200">
+                                <p className="text-xs text-slate-500 mb-2">ผู้เสนอตัวเป็นนายกกำลังเรียบเรียงคำตอบ...</p>
+                                <div className="flex gap-1.5 items-center">
+                                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
+                                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.15s' }} />
+                                    <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: '0.3s' }} />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -957,7 +959,7 @@ export default function PMSimulator() {
                     <>
                         <div className="bg-white p-2 rounded-xl border border-slate-200 shadow-lg flex gap-2">
                             <input type="text" className="flex-grow p-3 bg-transparent focus:outline-none text-slate-700"
-                                placeholder="ถามนายกฯ 1 คำถาม (เช่น เศรษฐกิจแก้ยังไง, ลดค่าไฟไหม...)"
+                                placeholder="ซักถามผู้เสนอตัวเป็นนายก 1 คำถาม..."
                                 value={inputMessage} onChange={(e) => setInputMessage(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()} />
                             <button onClick={handleSendMessage} disabled={isTyping || !inputMessage.trim()}
@@ -965,21 +967,35 @@ export default function PMSimulator() {
                                 <Send size={20} />
                             </button>
                         </div>
-                        <div className="mt-3 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
-                            {['จะแก้ปัญหาเศรษฐกิจยังไง', 'ขอลดค่าไฟหน่อย', 'ปราบยาเสพติดยังไง', 'การศึกษาจะดีขึ้นไหม', 'ค่าครองชีพแพงมาก', 'จะแก้ปัญหาน้ำท่วมยังไง', 'ทุจริตคอร์รัปชันจะหมดไปไหม', 'เมื่อไหร่จะแก้รัฐธรรมนูญ', 'จะปฏิรูปกองทัพไหม', 'PM 2.5 จะแก้ยังไง', 'หนี้ครัวเรือนสูง ช่วยได้ไหม', 'ต่างชาติจะลงทุนเพิ่มไหม'].map(q => (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                            {shuffledQuestions.map(q => (
                                 <button key={q} onClick={() => setInputMessage(q)}
-                                    className="whitespace-nowrap px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs rounded-full transition-colors border border-slate-200">{q}</button>
+                                    className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-600 text-xs rounded-full transition-colors border border-slate-200">{q}</button>
                             ))}
                         </div>
+                        <button
+                            onClick={async () => {
+                                setHasAskedQuestion(true);
+                                const scoreData = calculateScore();
+                                setScore(scoreData);
+                                playFanfare();
+                                await saveSession(scoreData);
+                                fetchAggregateStats();
+                                setStep(5);
+                            }}
+                            className="mt-3 w-full py-2.5 bg-white border-2 border-dashed border-slate-300 hover:border-blue-300 hover:bg-blue-50 text-slate-500 hover:text-blue-600 font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm"
+                        >
+                            ข้ามการถามคำถาม ไปโหวตเลย <ArrowRight size={16} />
+                        </button>
                     </>
                 ) : (
                     <div className="space-y-3">
                         <button
-                            onClick={() => { if (reshuffleCount < 2) { setReshuffleCount(prev => prev + 1); setStep(3); } }}
-                            disabled={reshuffleCount >= 2}
+                            onClick={() => { if (reshuffleCount < 1) { setReshuffleCount(prev => prev + 1); setStep(3); } }}
+                            disabled={reshuffleCount >= 1}
                             className="w-full py-3 bg-white border-2 border-slate-200 hover:border-blue-300 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            <RotateCcw size={18} /> ปรับ ครม. (เหลือ {2 - reshuffleCount} ครั้ง)
+                            <RotateCcw size={18} /> เสนอนายกคนใหม่ โหวตรอบใหม่ (เหลือ {1 - reshuffleCount} ครั้ง)
                         </button>
                         <button
                             onClick={async () => {
@@ -992,7 +1008,7 @@ export default function PMSimulator() {
                             }}
                             className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
                         >
-                            ยืนยันจัดตั้งรัฐบาล ดูผลลัพธ์ <ArrowRight size={18} />
+                            สภาโหวตรับรอง ดูผลลัพธ์ <ArrowRight size={18} />
                         </button>
                     </div>
                 )}
@@ -1073,16 +1089,17 @@ export default function PMSimulator() {
         const commentary = getCommentary(score);
 
         const scoreCategories = [
-            { label: 'เสถียรภาพรัฐบาล', value: score.coalition, max: 30, color: 'bg-emerald-500', explanation: `เสียงเหนือ 250 = ${totalCoalitionSeats - MAJORITY_THRESHOLD} ที่นั่ง (ยิ่งมากยิ่งดี)` },
+            { label: 'เสถียรภาพรัฐบาล', value: score.coalition, max: 25, color: 'bg-emerald-500', explanation: `เสียงเหนือ 250 = ${totalCoalitionSeats - MAJORITY_THRESHOLD} ที่นั่ง (ยิ่งมากยิ่งดี)` },
             { label: 'นโยบาย: เศรษฐกิจ', value: score.economy, max: 15, color: 'bg-blue-500', explanation: 'สัดส่วนนโยบายเศรษฐกิจที่เลือก' },
             { label: 'นโยบาย: สังคม', value: score.social, max: 15, color: 'bg-purple-500', explanation: 'สัดส่วนนโยบายสังคม+การศึกษาที่เลือก' },
             { label: 'นโยบาย: ความมั่นคง', value: score.security, max: 15, color: 'bg-amber-500', explanation: 'สัดส่วนนโยบายความมั่นคง+สิ่งแวดล้อม+การเมือง' },
-            { label: 'ครม. ตรงกับจุดแข็งพรรค', value: score.cabinet, max: 20, color: 'bg-cyan-500', explanation: 'จำนวนกระทรวงที่ตรงกับความเชี่ยวชาญ' },
+            { label: 'นโยบายตรงจุดแข็งพรรคร่วม', value: score.alignment, max: 15, color: 'bg-cyan-500', explanation: 'สัดส่วนนโยบายที่ตรงกับพรรคร่วมรัฐบาล' },
+            { label: 'งบประมาณ', value: score.budget, max: 15, color: 'bg-teal-500', explanation: `เลือก ${selectedPolicies.size} นโยบาย (ยิ่งน้อยยิ่งมีวินัย)` },
         ];
 
         const resetGame = () => {
             setStep(0); setCoalition([]); setCabinet({}); setSelectedPolicies(new Set());
-            setChatHistory([{ sender: 'โฆษกรัฐบาล', text: 'สวัสดีครับ ขณะนี้ท่านนายกรัฐมนตรีพร้อมรับฟังเสียงประชาชนแล้ว ท่านสามารถถามคำถามได้ 1 ข้อครับ' }]);
+            setChatHistory([{ sender: 'ประธานสภา', text: 'สวัสดีครับ ขณะนี้เปิดให้ผู้เสนอตัวเป็นนายกรัฐมนตรีแสดงวิสัยทัศน์ต่อสภา สมาชิกสภาสามารถซักถามได้ 1 คำถามครับ' }]);
             setInputMessage(''); setReshuffleCount(0); setConfettiFired(false); setScore(null);
             setPolicyCategoryIndex(0); setHasAskedQuestion(false); setStreamingText({}); setStreamingDone({});
             setShowHelper({});
@@ -1210,7 +1227,7 @@ export default function PMSimulator() {
                 <div className="max-w-4xl mx-auto">
                     <header className="mb-2 text-center relative">
                         <h1 className="text-2xl font-extrabold text-slate-900 mb-1">Sim-Government: Thailand 2569</h1>
-                        <p className="text-sm text-slate-400 mb-4">คุณคือพรรคร่วมรัฐบาล ที่มีเสียงมาจากประชาชน</p>
+                        <p className="text-sm text-slate-400 mb-4">คุณคือแกนนำจัดตั้งรัฐบาล</p>
                         {/* Mute toggle */}
                         <button onClick={toggleMute} className="absolute top-0 right-0 p-2 text-slate-400 hover:text-slate-600 transition-colors" title={soundMuted ? 'เปิดเสียง' : 'ปิดเสียง'}>
                             {soundMuted ? <VolumeX size={20} /> : <Volume2 size={20} />}

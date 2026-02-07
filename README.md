@@ -22,17 +22,70 @@ This game is **Part 2** of the Thai Election 2569 series:
 | Feature | Description |
 |---------|-------------|
 | **Introduction Screen** | Developer credits, clean gradient background, poll reference links (NIDA/Dusit), public stats view |
-| **5-Step Progress Indicator** | Clickable visual tracker with backward navigation, reshuffle counter for cabinet |
+| **5-Step Progress Indicator** | Clickable visual tracker with backward navigation, 1-reshuffle limit for PM nomination |
 | **Coalition Building** | Form government from 500 MPs across 11 parties, sorted by seats descending, cleaner party cards |
-| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, 17 grouped similar policies, **policy helper with pro/con** |
-| **Cabinet Allocation** | Assign 14 ministries + PM, quick actions (จัด ครม. ตามโควตา สส., PM party, Clear), 2 reshuffle limit |
-| **AI-Powered Political Chat** | 1 question limit, 12 suggested questions, sequential streaming (PM → Opposition), **"ประชาชนถามนายก" framing** |
+| **Policy Selection** | Step-through 6 categories, randomized order, no party names shown, 17 grouped similar policies, **policy helper inline with pro/con** |
+| **PM Nomination + Cabinet** | Propose PM candidate and assign 14 ministries + PM, quick actions (จัด ครม. ตามโควตา สส., PM party, Clear), 1 reshuffle max |
+| **Parliamentary PM Vote** | PM candidate presents vision to parliament, 1 question limit, shuffled suggestions (12 total), skip option, sequential streaming (PM → Opposition) |
 | **Emoji Confetti** | Party-specific emoji symbols (🍊❤️🌿💧⭐🏛️🌙💰🌸🦅🎉) celebration |
 | **Sound Effects** | Web Audio API (0KB) sounds for select, deselect, success, transition, fanfare + mute toggle |
-| **Results & Scoring** | 100-point score across **5 categories** (coalition, economy, social, security, cabinet) + **balance bonus**, dynamic commentary |
+| **Results & Scoring** | 100-point score across **6 categories** (coalition, economy, social, security, alignment, budget) + **balance bonus**, dynamic commentary |
 | **Screenshot/Share** | html2canvas integration with Web Share API and download fallback |
 | **Aggregate Stats** | Public leaderboards showing PM distribution, score averages |
 | **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
+
+## What's New in v0.8.0
+
+**Story & UI Overhaul: Parliamentary PM Vote, Scoring Redesign, Policy Helper Inline**
+
+### Story Reframe: Parliamentary Narrative
+- **Intro Message**: "คุณคือแกนนำจัดตั้งรัฐบาล" → "รวมเสียง เลือกนโยบาย แล้วเสนอนายกเข้าสภาเพื่อโหวต"
+- **Step 3 Title**: "จัดสรรโควตารัฐมนตรี" → "เสนอชื่อนายก และจัดสรรโควตา ครม."
+- **Step 4 Title**: "ประชาชนถามนายก" → "แสดงวิสัยทัศน์ในสภา"
+- **Role Context**: Coalition leader proposes PM candidate to parliament, MPs ask questions before vote
+- **Greeting**: "ประธานสภา" (Speaker) introduces PM candidate and parliamentary procedure
+- **Opposition Label**: "วิปฝ่ายค้าน (PartyName)" framing for parliamentary opposition
+
+### New Scoring System (100 Points + 5 Bonus)
+| Category | Points | Calculation |
+|----------|--------|-------------|
+| เสถียรภาพรัฐบาล | 25 | Margin above 250 seats (was 30) |
+| นโยบาย: เศรษฐกิจ | 15 | Economy policies selected / total available |
+| นโยบาย: สังคม | 15 | Social + Education policies / total available |
+| นโยบาย: ความมั่นคง | 15 | Security + Environment + Politics policies / total available |
+| นโยบายตรงจุดแข็งพรรคร่วม | 15 | **NEW**: % policies from coalition parties |
+| งบประมาณ | 15 | **NEW**: Policy count efficiency (0-5=15pts, 6-10=12, ..., 26+=0pts) |
+| **Bonus: ดุลยภาพนโยบาย** | **+5** | All 3 dimensions have ≥1 policy |
+
+### Policy Helper Redesign
+- **Moved to Sticky Header**: "ตัวช่วย" button now in top header (next to "ถัดไป"/"เลือกเสร็จ")
+- **Inline Display**: Pro/con appear directly in policy cards (below description) when helper is visible
+- **Cleaner UX**: Removed separate amber helper box, less visual clutter
+- **Smart Filtering**: Only shows on policies that have pro/con fields (most grouped + key individual policies)
+
+### Step 4 UI Improvements
+- **Loading Message**: "ผู้เสนอตัวเป็นนายกกำลังเรียบเรียงคำตอบ..." instead of just bouncing dots
+- **Suggested Questions**: Display as wrapping flex-wrap grid (no horizontal scroll), shuffled order with `useMemo`
+- **Skip Option**: "ข้ามการถามคำถาม ไปโหวตเลย" button to bypass question and go to results
+- **Post-Answer Buttons**:
+  - "สภาโหวตรับรอง ดูผลลัพธ์" (was "ยืนยันจัดตั้งรัฐบาล")
+  - "เสนอนายกคนใหม่ โหวตรอบใหม่" (was "ปรับ ครม."), max 1 retry (changed from 2)
+
+### AI Prompts Enhanced
+- **PM Context**: "แสดงวิสัยทัศน์ต่อสภา" (presenting vision to parliament)
+- **PM Voice**: Uses "เรา" instead of "ฉัน" or "ผม" (collective leadership voice)
+- **Opposition**: "วิปฝ่ายค้าน" (parliamentary opposition) framing
+- **Sender Labels**: "วิปฝ่ายค้าน (PartyName)" for clarity
+
+### Database Schema Updated
+- New fields: `score_alignment`, `score_budget` (replacing `score_cabinet`)
+- Removed: `score_cabinet` field (subsumed into alignment + budget scoring)
+
+### UX Refinements
+- Step indicator now shows "โหวตนายก" (was "ถามนายก") for step 4
+- Reshuffle counter reduced from 2 to 1 (max 1 PM nomination retry)
+- Commentary updated with budget and alignment insights
+- Results page shows 6 scoring categories instead of 5
 
 ## What's New in v0.7.0
 
@@ -340,31 +393,34 @@ Intro Screen (step 0)
 Step 1: Coalition Building
   │  Select parties to reach 250+ seats
   ▼
-Step 2: Policy Selection
+Step 2: Policy Selection (100 วันแรก)
   │  Step through 6 categories, select policies (randomized, no party names)
+  │  Policy helper shows inline pro/con when enabled
   ▼
-Step 3: Cabinet Allocation
-  │  Assign parties to 14 ministries + PM (2 reshuffles max)
+Step 3: PM Nomination + Cabinet
+  │  Propose PM candidate and assign parties to 14 ministries + PM (1 reshuffle max)
   ▼
-Step 4: Government Chat
-  │  Chat with AI-powered PM and Opposition (confetti celebration!)
-  │  "จบบริหาร - ดูผลลัพธ์"
+Step 4: Parliamentary PM Vote (แสดงวิสัยทัศน์ในสภา)
+  │  PM candidate presents vision, MPs ask 1 question, optional skip to vote
+  │  Sequential AI responses: PM vision → Opposition response
+  │  Confetti celebration on government formation!
   ▼
 Step 5: Results & Scoring
-     Score breakdown (100pts), grade A+ to F, government summary, aggregate comparison
+     Score breakdown (100pts + 5 bonus), grade A+ to F, government summary, aggregate comparison
 ```
 
 ## Scoring System
 
-The game evaluates your government across 5 categories (100 points total):
+The game evaluates your government across 6 categories (100 points + 5 bonus total):
 
 | Category | Max Points | Formula |
 |----------|-----------|---------|
-| เสถียรภาพรัฐบาล (Coalition Stability) | 30 | Margin above 250 seats (harder curve: /150) |
+| เสถียรภาพรัฐบาล (Coalition Stability) | 25 | Margin above 250 seats (harder curve: /150) |
 | นโยบาย: เศรษฐกิจ (Economy Policies) | 15 | Economy policies selected / total economy available |
 | นโยบาย: สังคม (Social Policies) | 15 | Social + Education policies / total available |
 | นโยบาย: ความมั่นคง (Security Policies) | 15 | Security + Environment + Politics policies / total available |
-| ครม. ตรงกับจุดแข็งพรรค (Cabinet Expertise) | 20 | Expertise matches / 14 ministries |
+| นโยบายตรงจุดแข็งพรรคร่วม (Policy-Party Alignment) | 15 | Aligned policies (from coalition parties) / selected total |
+| งบประมาณ (Budget Discipline) | 15 | Fewer policies = higher score (0-5: 15pts, 6-10: 12pts, ..., 26+: 0pts) |
 | **Bonus: ดุลยภาพนโยบาย** | **+5** | All 3 dimensions have ≥1 policy |
 
 **Grading:** A+(92+) A(82+) B+(72+) B(62+) C+(52+) C(42+) D(32+) F(<32)
@@ -421,7 +477,8 @@ CREATE TABLE game_sessions (
   score_economy INTEGER,
   score_social INTEGER,
   score_security INTEGER,
-  score_cabinet INTEGER,
+  score_alignment INTEGER,
+  score_budget INTEGER,
   score_balance_bonus INTEGER,
   grade TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
