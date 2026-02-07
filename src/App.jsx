@@ -133,9 +133,7 @@ export default function PMSimulator() {
     const [policyCategoryIndex, setPolicyCategoryIndex] = useState(0);
     const [coalition, setCoalition] = useState([]);
     const [cabinet, setCabinet] = useState({});
-    const [chatLog, setChatHistory] = useState([
-        { sender: 'ประธานสภา', text: 'สวัสดีครับ ขณะนี้เปิดให้ผู้เสนอตัวเป็นนายกรัฐมนตรีแสดงวิสัยทัศน์ต่อสภา สมาชิกสภาสามารถซักถามได้ 1 คำถามครับ' }
-    ]);
+    const [chatLog, setChatHistory] = useState([]);
     const [inputMessage, setInputMessage] = useState('');
     const [isTyping, setIsTyping] = useState(false);
     const [reshuffleCount, setReshuffleCount] = useState(0);
@@ -263,20 +261,20 @@ export default function PMSimulator() {
         // 2. Policy dimensions
         const selectedPolicyObjects = POLICIES.filter(p => selectedPolicies.has(p.id));
 
-        // Economy dimension: cat economy
+        // Economy dimension: cat economy (capped at 6 effective policies)
         const economyPolicies = selectedPolicyObjects.filter(p => p.cat === 'economy');
-        const totalEconomy = POLICIES.filter(p => p.cat === 'economy' && !GROUPED_POLICY_IDS.includes(p.id)).length;
-        const economyScore = Math.min(15, Math.round((economyPolicies.length / Math.max(1, totalEconomy)) * 15));
+        const effectiveEconomy = Math.min(economyPolicies.length, 6);
+        const economyScore = Math.min(15, Math.round((effectiveEconomy / 6) * 15));
 
-        // Social dimension: cat social + education
+        // Social dimension: cat social + education (capped at 6 effective)
         const socialPolicies = selectedPolicyObjects.filter(p => p.cat === 'social' || p.cat === 'education');
-        const totalSocial = POLICIES.filter(p => (p.cat === 'social' || p.cat === 'education') && !GROUPED_POLICY_IDS.includes(p.id)).length;
-        const socialScore = Math.min(15, Math.round((socialPolicies.length / Math.max(1, totalSocial)) * 15));
+        const effectiveSocial = Math.min(socialPolicies.length, 6);
+        const socialScore = Math.min(15, Math.round((effectiveSocial / 6) * 15));
 
-        // Security dimension: cat security + environment + politics
+        // Security dimension: cat security + environment + politics (capped at 6 effective)
         const securityPolicies = selectedPolicyObjects.filter(p => p.cat === 'security' || p.cat === 'environment' || p.cat === 'politics');
-        const totalSecurity = POLICIES.filter(p => (p.cat === 'security' || p.cat === 'environment' || p.cat === 'politics') && !GROUPED_POLICY_IDS.includes(p.id)).length;
-        const securityScore = Math.min(15, Math.round((securityPolicies.length / Math.max(1, totalSecurity)) * 15));
+        const effectiveSecurity = Math.min(securityPolicies.length, 6);
+        const securityScore = Math.min(15, Math.round((effectiveSecurity / 6) * 15));
 
         // 3. Policy-party alignment (15 pts) - policies from coalition parties
         let alignedCount = 0;
@@ -290,7 +288,7 @@ export default function PMSimulator() {
 
         // 4. Budget efficiency (15 pts) - fewer policies = more disciplined
         const policyCount = selectedPolicies.size;
-        const budgetScore = policyCount <= 5 ? 15 : policyCount <= 10 ? 12 : policyCount <= 15 ? 9 : policyCount <= 20 ? 6 : policyCount <= 25 ? 3 : 0;
+        const budgetScore = policyCount <= 5 ? 15 : policyCount <= 10 ? 12 : policyCount <= 15 ? 8 : policyCount <= 20 ? 4 : 0;
 
         // 5. Balance bonus (+5) - all 3 dimensions have at least 2 policies each
         const hasEconomy = economyPolicies.length >= 2;
@@ -298,7 +296,10 @@ export default function PMSimulator() {
         const hasSecurity = securityPolicies.length >= 2;
         const balanceBonus = (hasEconomy && hasSocial && hasSecurity) ? 5 : 0;
 
-        const total = coalitionScore + economyScore + socialScore + securityScore + alignmentScore + budgetScore + balanceBonus;
+        // Overspending penalty: selecting 25+ policies loses extra points
+        const overspendPenalty = policyCount > 25 ? Math.min(10, (policyCount - 25) * 2) : 0;
+
+        const total = Math.max(0, coalitionScore + economyScore + socialScore + securityScore + alignmentScore + budgetScore + balanceBonus - overspendPenalty);
 
         // Harder grading curve
         const grade = total >= 92 ? 'A+' : total >= 82 ? 'A' : total >= 72 ? 'B+' : total >= 62 ? 'B' : total >= 52 ? 'C+' : total >= 42 ? 'C' : total >= 32 ? 'D' : 'F';
@@ -516,6 +517,16 @@ export default function PMSimulator() {
 
     useEffect(() => { chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [chatLog]);
     useEffect(() => { if (step === 4 && !confettiFired) fireConfetti(); }, [step]);
+    useEffect(() => {
+        if (step === 4) {
+            const pmPartyId = cabinet['PM'] || coalition[0];
+            const pmParty = PARTIES.find(p => p.id === pmPartyId);
+            setChatHistory([
+                { sender: 'ประธานสภา', text: `สวัสดีครับ เชิญผู้ถูกเสนอชื่อเป็นนายกรัฐมนตรีจากพรรค${pmParty?.name || ''} แสดงวิสัยทัศน์ต่อสภา สมาชิกสภาสามารถซักถามได้ 1 คำถามครับ` }
+            ]);
+            setHasAskedQuestion(false);
+        }
+    }, [step]);
 
     // --- Screenshot/Share ---
     const handleShare = async () => {
@@ -797,7 +808,9 @@ export default function PMSimulator() {
                         const hasSelected = catPolicies.some(p => selectedPolicies.has(p.id));
                         return (
                             <button key={cat.id} onClick={() => setPolicyCategoryIndex(idx)}
-                                className={`flex-1 h-2 rounded-full transition-all ${idx === policyCategoryIndex ? 'bg-blue-500' : hasSelected ? 'bg-emerald-400' : 'bg-slate-200'}`} />
+                                className={`flex-1 rounded-full transition-all text-center ${idx === policyCategoryIndex ? 'bg-blue-500 text-white py-1 text-xs font-bold' : hasSelected ? 'bg-emerald-400 h-2 mt-2' : 'bg-slate-200 h-2 mt-2'}`}>
+                                {idx === policyCategoryIndex ? cat.name : ''}
+                            </button>
                         );
                     })}
                 </div>
@@ -805,7 +818,10 @@ export default function PMSimulator() {
                 {/* Category heading */}
                 <div className="text-center mb-4">
                     <h2 className="text-2xl font-bold text-slate-800">สิ่งที่อยากให้ทำใน 100 วันแรก</h2>
-                    <p className="text-sm text-slate-500 mt-1">หมวด: {currentCat.name} ({policiesInCat.length} นโยบาย | เลือกแล้ว {selectedInCat})</p>
+                    <div className="inline-block bg-blue-100 text-blue-800 text-lg font-bold rounded-xl px-4 py-2 mt-2">
+                        {currentCat.name}
+                    </div>
+                    <p className="text-sm text-slate-500 mt-1">{policiesInCat.length} นโยบาย | เลือกแล้ว {selectedInCat}</p>
                 </div>
 
                 {/* Policy cards */}
@@ -1009,7 +1025,7 @@ export default function PMSimulator() {
                             disabled={reshuffleCount >= 1}
                             className="w-full py-3 bg-white border-2 border-slate-200 hover:border-blue-300 text-slate-700 font-bold rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            <RotateCcw size={18} /> เสนอนายกคนใหม่ โหวตรอบใหม่ (เหลือ {1 - reshuffleCount} ครั้ง)
+                            <RotateCcw size={18} /> สภาเสียงข้างมากไม่รับรอง เสนอนายกคนใหม่
                         </button>
                         <button
                             onClick={async () => {
@@ -1022,7 +1038,7 @@ export default function PMSimulator() {
                             }}
                             className="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2"
                         >
-                            สภาโหวตรับรอง ดูผลลัพธ์ <ArrowRight size={18} />
+                            สภาเสียงข้างมากโหวตรับรอง ดูผลลัพธ์ <ArrowRight size={18} />
                         </button>
                     </div>
                 )}

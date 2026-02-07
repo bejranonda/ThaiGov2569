@@ -24,15 +24,27 @@ const MINISTRIES_MAP = {
     MOEN: 'กระทรวงพลังงาน',
 };
 
-// Call Cloudflare Workers AI
-async function callCloudflareAI(env, systemPrompt, userMessage) {
-    const response = await env.AI.run('@cf/meta/llama-3.1-8b-instruct', {
-        messages: [
-            { role: 'system', content: systemPrompt },
-            { role: 'user', content: userMessage }
-        ]
+// Call Google AI (Gemma 3 27B)
+async function callGoogleAI(env, systemPrompt, userMessage) {
+    const apiKey = env.GOOGLE_AI_KEY;
+    if (!apiKey) {
+        throw new Error('Google AI key not configured');
+    }
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemma-3-27b-it:generateContent?key=${apiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            systemInstruction: { parts: [{ text: systemPrompt }] },
+            contents: [{ role: 'user', parts: [{ text: userMessage }] }],
+            generationConfig: { maxOutputTokens: 700 }
+        })
     });
-    return response.response;
+    if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Google AI error: ${response.status} ${error}`);
+    }
+    const data = await response.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || 'No response generated';
 }
 
 // Call OpenRouter API (backup)
@@ -71,14 +83,12 @@ async function callOpenRouterAPI(env, systemPrompt, userMessage) {
 
 // Get AI response with fallback
 async function getAIResponse(env, systemPrompt, userMessage, sourceLabel) {
-    // Try Cloudflare Workers AI first
+    // Try Google AI (Gemma 3 27B) first
     try {
-        if (env.AI) {
-            const response = await callCloudflareAI(env, systemPrompt, userMessage);
-            return { text: response, source: 'Cloudflare Workers AI (Llama 3.1-8B)' };
-        }
+        const response = await callGoogleAI(env, systemPrompt, userMessage);
+        return { text: response, source: 'Google AI (Gemma 3-27B)' };
     } catch (err) {
-        console.log(`Cloudflare AI failed for ${sourceLabel}:`, err.message);
+        console.log(`Google AI failed for ${sourceLabel}:`, err.message);
     }
 
     // Fallback to OpenRouter
@@ -150,7 +160,8 @@ ${policiesText}
 - ตอบ 3-5 ประโยค ในสไตล์ผู้นำรัฐบาลที่จริงใจ
 - สะท้อนบุคลิกและจุดยืนของพรรค${pmParty.name}อย่างเป็นธรรมชาติ
 - ไม่ต้องลงท้ายด้วยวลีตายตัว ให้สร้างคำลงท้ายที่เหมาะสมเอง
-- แสดงความมุ่งมั่นและวิสัยทัศน์ส่วนตัว`;
+- แสดงความมุ่งมั่นและวิสัยทัศน์ส่วนตัว
+- พิจารณาจุดยืนของพรรคร่วมรัฐบาลในประเด็นสำคัญ เช่น การแก้รัฐธรรมนูญ การปฏิรูปกองทัพ แนวทางเศรษฐกิจ จากข้อมูลทั่วไป`;
 
         // 7. Opposition Prompt - ผู้มีแนวโน้มเป็นวิปฝ่ายค้าน
         const oppPrompt = `คุณคือผู้มีแนวโน้มเป็นวิปฝ่ายค้านจากพรรค${mainOpposition.name} กำลังซักถามและให้ความเห็นต่อวิสัยทัศน์ของผู้ถูกเสนอชื่อเป็นนายกฯ ในสภา
@@ -168,7 +179,8 @@ ${policiesText}
 - วิจารณ์อย่างสร้างสรรค์ เสนอทางเลือก
 - สะท้อนจุดยืนพรรค${mainOpposition.name}อย่างเป็นธรรมชาติ
 - ตอบ 3-5 ประโยค ในสไตล์วิปฝ่ายค้านในสภา
-- ไม่ต้องลงท้ายด้วยวลีตายตัว ให้สร้างคำลงท้ายที่เหมาะสมเอง`;
+- ไม่ต้องลงท้ายด้วยวลีตายตัว ให้สร้างคำลงท้ายที่เหมาะสมเอง
+- พิจารณาจุดยืนของพรรค${mainOpposition.name}ในประเด็นสำคัญ เช่น การแก้รัฐธรรมนูญ การปฏิรูปกองทัพ แนวทางเศรษฐกิจ จากข้อมูลทั่วไป`;
 
         // 8. Make AI calls with fallback
         const [pmResult, oppResult] = await Promise.allSettled([
