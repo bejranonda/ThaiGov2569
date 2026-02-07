@@ -34,6 +34,57 @@ This game is **Part 2** of the Thai Election 2569 series:
 | **Aggregate Stats** | Public leaderboards showing PM distribution, score averages |
 | **Data Persistence** | Full session data saved to Cloudflare D1 with scoring metrics |
 
+## What's New in v0.8.2
+
+**Coalition Scoring Refinement: Smooth Curve with Optimal Plateau (57-66%)**
+
+### Coalition Scoring System
+- **Precarious** (50.2-57%): Ramps up from 0 to 25 points
+  - Risky if anyone leaves coalition
+  - Encourages building stronger government
+- **Optimal** (57-66%): Full 25 points plateau
+  - Best democratic balance
+  - 285-330 seats out of 500
+  - Opposition remains strong (34% voice)
+  - **Peak performance zone**
+- **Over-qualified** (66-75%): Ramps down from 25 to 0 points
+  - Beyond ideal range
+  - Opposition weakened
+  - Approaching dangerous territory
+- **Dangerous** (75%+): 0 points
+  - Can amend constitution alone
+  - Opposition loses meaningful oversight
+  - Threatens democratic balance
+
+### Scoring Curve (Smooth with Plateau)
+```
+Points
+  25  ═══════════════════  (57-66% optimal plateau)
+      ╱                   ╲
+      Ramp up          Ramp down
+      (50.2-57%)       (66-75%)
+```
+
+### Example Scores
+| Seats | % | Points | Status |
+|-------|---|--------|--------|
+| 251 | 50.2% | 0 | ❌ No majority |
+| 280 | 56% | 21.9 | ⚠️ Precarious |
+| 285 | 57% | 25 | ✅ Optimal starts |
+| 308 | 61.6% | 25 | ✅ Solid majority |
+| 330 | 66% | 25 | ✅ Optimal ends |
+| 353 | 70.6% | 12.5 | ⚠️ Over-qualified |
+| 375 | 75% | 0 | ❌ Dangerous |
+
+### Why This Design
+- **Smooth Transitions**: No artificial cliffs in scoring
+- **Clear Optimal Zone**: 57-66% is unambiguously the best range
+- **Educational**: Teaches players about democratic balance
+- **Realistic**: Reflects actual coalition challenges in Thai politics
+- **Fair**: Rewards strategic coalition building, not lucky threshold-crossing
+
+---
+
 ## What's New in v0.8.1
 
 **Configuration Fixes & AI Revert: Cloudflare Pages, Llama AI, Database Setup**
@@ -446,19 +497,25 @@ Step 5: Results & Scoring
      Score breakdown (100pts + 5 bonus), grade A+ to F, government summary, aggregate comparison
 ```
 
-## Scoring System
+## Scoring System (v0.8.2)
 
 The game evaluates your government across 6 categories (100 points + 5 bonus total):
 
 | Category | Max Points | Formula |
 |----------|-----------|---------|
-| เสถียรภาพรัฐบาล (Coalition Stability) | 25 | Margin above 250 seats (harder curve: /150) |
+| **เสถียรภาพรัฐบาล** (Coalition Stability) | 25 | **Smooth curve: 57-66% = full 25pts** |
 | นโยบาย: เศรษฐกิจ (Economy Policies) | 15 | Economy policies selected / total economy available |
 | นโยบาย: สังคม (Social Policies) | 15 | Social + Education policies / total available |
 | นโยบาย: ความมั่นคง (Security Policies) | 15 | Security + Environment + Politics policies / total available |
 | นโยบายตรงจุดแข็งพรรคร่วม (Policy-Party Alignment) | 15 | Aligned policies (from coalition parties) / selected total |
 | งบประมาณ (Budget Discipline) | 15 | Fewer policies = higher score (0-5: 15pts, 6-10: 12pts, ..., 26+: 0pts) |
-| **Bonus: ดุลยภาพนโยบาย** | **+5** | All 3 dimensions have ≥1 policy |
+| **Bonus: ดุลยภาพนโยบาย** | **+5** | All 3 dimensions have ≥2 policies |
+
+**Coalition Scoring Detail (v0.8.2):**
+- 50.2-57% (251-285 seats): 0-25 points (ramps up)
+- **57-66% (285-330 seats): Full 25 points (optimal)**
+- 66-75% (330-375 seats): 25-0 points (ramps down)
+- 75%+ (375+ seats): 0 points (dangerous)
 
 **Grading:** A+(92+) A(82+) B+(72+) B(62+) C+(52+) C(42+) D(32+) F(<32)
 
