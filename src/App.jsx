@@ -254,18 +254,21 @@ export default function PMSimulator() {
 
     // --- New Scoring System (v0.8.0) ---
     const calculateScore = () => {
-        // 1. Coalition stability (25 pts) - Smooth curve peaking at 60%
-        // Peaks at 60%, smoothly decreases to 0 at 50% and 75%
+        // 1. Coalition stability (25 pts) - Optimal range 55-65% gets full points
+        // Ramp up 50.2-55%, Full 25pts at 55-65%, Ramp down 65-75%
         const percentage = (totalCoalitionSeats / 500) * 100;
         let coalitionScore = 0;
 
         if (percentage >= 50.2 && percentage <= 75) {
-            if (percentage <= 60) {
-                // Ramp up smoothly from 50.2% to 60% (0 to 25 points)
-                coalitionScore = Math.round(25 * (percentage - 50.2) / 9.8);
+            if (percentage <= 55) {
+                // Ramp up from 50.2% to 55% (0 to 25 points)
+                coalitionScore = Math.round(25 * (percentage - 50.2) / 4.8);
+            } else if (percentage <= 65) {
+                // Full 25 points for optimal range 55-65%
+                coalitionScore = 25;
             } else {
-                // Ramp down smoothly from 60% to 75% (25 to 0 points)
-                coalitionScore = Math.max(0, Math.round(25 * (75 - percentage) / 15));
+                // Ramp down from 65% to 75% (25 to 0 points)
+                coalitionScore = Math.max(0, Math.round(25 * (75 - percentage) / 10));
             }
         }
         coalitionScore = Math.max(0, Math.min(25, coalitionScore));
